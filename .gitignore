@@ -3,3 +3,8 @@ build*
 /**/.vs
 /**/obj
 components_hidden
+deps
+assets
+docs
+infra
+tools
