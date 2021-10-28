@@ -64,5 +64,14 @@ namespace m1
         ViewportSpace viewSpace;
         LogicSpace logicSpace;
         glm::mat3 modelMatrix, visMatrix;
+
+        // Variabile cu care verfic daca tastele sunt inca apasate
+        bool wP = false;
+        bool aP = false;
+        bool sP = false;
+        bool dP = false;
+
+        bool zP = false;
+        bool xP = false;
     };
 }   // namespace m1

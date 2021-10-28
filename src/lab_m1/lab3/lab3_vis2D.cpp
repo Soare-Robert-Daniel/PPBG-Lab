@@ -167,20 +167,81 @@ void Lab3_Vis2D::DrawScene(glm::mat3 visMatrix)
 void Lab3_Vis2D::OnInputUpdate(float deltaTime, int mods)
 {
     // TODO(student): Move the logic window with W, A, S, D (up, left, down, right)
-
+    if (wP) {
+        logicSpace.y += 0.05;
+    }
+    if (sP) {
+        logicSpace.y -= 0.05;
+    }
+    if (aP) {
+        logicSpace.x -= 0.05;
+    }
+    if (dP) {
+        logicSpace.x += 0.05;
+    }
     // TODO(student): Zoom in and zoom out logic window with Z and X
-
+    if (zP) {
+        logicSpace.x += 0.1;
+        logicSpace.width -= 0.2;
+        logicSpace.y += 0.1;
+        logicSpace.height -= 0.2;
+    }
+    if (xP) {
+        logicSpace.x -= 0.1;
+        logicSpace.width += 0.2;
+        logicSpace.y -= 0.1;
+        logicSpace.height += 0.2;
+    }
+    
 }
 
 
 void Lab3_Vis2D::OnKeyPress(int key, int mods)
 {
+    if (key == GLFW_KEY_W) {
+        wP = true;
+    }
+    if (key == GLFW_KEY_S) {
+        sP = true;
+    }
+    if (key == GLFW_KEY_A) {
+        aP = true;
+    }
+    if (key == GLFW_KEY_D) {
+       dP = true;
+    }
+
+    if (key == GLFW_KEY_X) {
+        xP = true;
+    }
+    if (key == GLFW_KEY_Z) {
+        zP = true;
+    }
 }
 
 
 void Lab3_Vis2D::OnKeyRelease(int key, int mods)
 {
     // Add key release event
+    if (key == GLFW_KEY_W) {
+        wP = false;
+    }
+    if (key == GLFW_KEY_S) {
+        sP = false;
+    }
+    if (key == GLFW_KEY_A) {
+        aP = false;
+    }
+    if (key == GLFW_KEY_D) {
+        dP = false;
+    }
+
+    if (key == GLFW_KEY_X) {
+        xP = false;
+    }
+    if (key == GLFW_KEY_Z) {
+        zP = false;
+    }
 }
 
 
