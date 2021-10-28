@@ -38,22 +38,33 @@ void Lab3::Init()
 
     glm::vec3 corner = glm::vec3(0, 0, 0);
     float squareSide = 100;
+   
 
     // TODO(student): Compute coordinates of a square's center, and store
     // then in the `cx` and `cy` class variables (see the header). Use
     // `corner` and `squareSide`. These two class variables will be used
     // in the `Update()` function. Think about it, why do you need them?
+    cx = squareSide / 2;
+    cy = squareSide / 2;
 
     // Initialize tx and ty (the translation steps)
-    translateX = 0;
-    translateY = 0;
+    translateX = 1;
+    translateY = 1;
 
     // Initialize sx and sy (the scale factors)
-    scaleX = 1;
-    scaleY = 1;
+    scaleX = 0.1;
+    scaleY = 0.1;
+
+    xPos = 0;
+    yPos = 0;
+
+    curRot = 0;
+
+    xSize = 0.5;
+    ySize = 0.5;
 
     // Initialize angularStep
-    angularStep = 0;
+    angularStep = glm::pi<float>() / 6 / 3;
 
     Mesh* square1 = object2D::CreateSquare("square1", corner, squareSide, glm::vec3(1, 0, 0), true);
     AddMeshToList(square1);
@@ -90,6 +101,11 @@ void Lab3::Update(float deltaTimeSeconds)
     // TODO(student): Create animations by multiplying the current
     // transform matrix with the matrices you just implemented.
     // Remember, the last matrix in the chain will take effect first!
+    modelMatrix *= transform2D::Translate(xPos, yPos);
+    if (xPos + 150 > 10 && yPos + 250 < 500) {
+        xPos -= translateX * deltaTimeSeconds;
+        yPos += translateY * deltaTimeSeconds;
+    }
 
     RenderMesh2D(meshes["square1"], shaders["VertexColor"], modelMatrix);
 
@@ -98,6 +114,9 @@ void Lab3::Update(float deltaTimeSeconds)
     // TODO(student): Create animations by multiplying the current
     // transform matrix with the matrices you just implemented
     // Remember, the last matrix in the chain will take effect first!
+    modelMatrix *= transform2D::Translate(cx, cy)* transform2D::Rotate(curRot)* transform2D::Translate(-cx, -cy);
+    curRot += angularStep * deltaTimeSeconds;
+
 
     RenderMesh2D(meshes["square2"], shaders["VertexColor"], modelMatrix);
 
@@ -106,6 +125,11 @@ void Lab3::Update(float deltaTimeSeconds)
     // TODO(student): Create animations by multiplying the current
     // transform matrix with the matrices you just implemented
     // Remember, the last matrix in the chain will take effect first!
+    modelMatrix *= transform2D::Translate(cx, cy) * transform2D::Scale(xSize, ySize) * transform2D::Translate(-cx, -cy);
+    if (xSize < 2 && ySize < 2) {
+        xSize += scaleX * deltaTimeSeconds;
+        ySize += scaleY * deltaTimeSeconds;
+    }
 
     RenderMesh2D(meshes["square3"], shaders["VertexColor"], modelMatrix);
 }

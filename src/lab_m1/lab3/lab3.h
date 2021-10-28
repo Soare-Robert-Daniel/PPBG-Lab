@@ -35,6 +35,8 @@ namespace m1
         float angularStep;
 
         // TODO(student): If you need any other class variables, define them here.
-
+        float xPos, yPos;
+        float curRot;
+        float xSize, ySize;
     };
 }   // namespace m1
