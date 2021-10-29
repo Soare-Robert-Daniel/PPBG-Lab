@@ -168,29 +168,29 @@ void Lab3_Vis2D::OnInputUpdate(float deltaTime, int mods)
 {
     // TODO(student): Move the logic window with W, A, S, D (up, left, down, right)
     if (wP) {
-        logicSpace.y += 0.05;
+        logicSpace.y += 1 * deltaTime;
     }
     if (sP) {
-        logicSpace.y -= 0.05;
+        logicSpace.y -= 1 * deltaTime;
     }
     if (aP) {
-        logicSpace.x -= 0.05;
+        logicSpace.x -= 1 * deltaTime;
     }
     if (dP) {
-        logicSpace.x += 0.05;
+        logicSpace.x += 1 * deltaTime;
     }
     // TODO(student): Zoom in and zoom out logic window with Z and X
     if (zP) {
-        logicSpace.x += 0.1;
-        logicSpace.width -= 0.2;
-        logicSpace.y += 0.1;
-        logicSpace.height -= 0.2;
+        logicSpace.x += 1 * deltaTime;
+        logicSpace.width -= 2 * deltaTime;
+        logicSpace.y += 1 * deltaTime;
+        logicSpace.height -= 2 * deltaTime;
     }
     if (xP) {
-        logicSpace.x -= 0.1;
-        logicSpace.width += 0.2;
-        logicSpace.y -= 0.1;
-        logicSpace.height += 0.2;
+        logicSpace.x -= 1 * deltaTime;
+        logicSpace.width += 2 * deltaTime;
+        logicSpace.y -= 1 * deltaTime;
+        logicSpace.height += 2 * deltaTime;
     }
     
 }

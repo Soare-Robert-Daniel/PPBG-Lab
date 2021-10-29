@@ -33,5 +33,10 @@ namespace m1
         float scaleX, scaleY, scaleZ;
         float angularStepOX, angularStepOY, angularStepOZ;
         GLenum polygonMode;
+
+        // Verfic daca tastele sunt apasate
+        bool w = false, a = false, s = false, d = false, r = false, f = false;
+        bool p1 = false, p2 = false;
+        bool p3 = false, p4 = false, p5 = false, p6 = false, p7 = false, p8 = false;
     };
 }   // namespace m1

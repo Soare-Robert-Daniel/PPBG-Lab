@@ -103,7 +103,59 @@ void Lab4::FrameEnd()
 void Lab4::OnInputUpdate(float deltaTime, int mods)
 {
     // TODO(student): Add transformation logic
+    if (w) {
+        translateZ -= 1 * deltaTime;
+    }
+    if (s) {
+        translateZ += 1 * deltaTime;
+    }
+    if (a) {
+        translateX -= 1 * deltaTime;
+    }
+    if (d) {
+        translateX += 1 * deltaTime;
+    }
+    if (r) {
+        translateY += 1 * deltaTime;
+    }
+    if (f) {
+        translateY -= 1 * deltaTime;
+    }
 
+    if (p1) {
+        scaleX -= 1 * deltaTime;
+        scaleY -= 1 * deltaTime;
+        scaleZ -= 1 * deltaTime;
+    }
+    if (p2) {
+        scaleX += 1 * deltaTime;
+        scaleY += 1 * deltaTime;
+        scaleZ += 1 * deltaTime;
+    }
+
+    if (p3) {
+        angularStepOX += glm::pi<float>() / 6 * deltaTime;
+
+    }
+    if (p4) {
+        angularStepOX -= glm::pi<float>() / 6 * deltaTime;
+    }
+
+    if (p5) {
+        angularStepOY += glm::pi<float>() / 6 * deltaTime;
+
+    }
+    if (p6) {
+        angularStepOY -= glm::pi<float>() / 6 * deltaTime;
+    }
+
+    if (p7) {
+        angularStepOZ += glm::pi<float>() / 6 * deltaTime;
+
+    }
+    if (p8) {
+        angularStepOZ -= glm::pi<float>() / 6 * deltaTime;
+    }
 }
 
 
@@ -125,12 +177,105 @@ void Lab4::OnKeyPress(int key, int mods)
             break;
         }
     }
+
+    if (key == GLFW_KEY_W) {
+        w = true;
+    }
+    if (key == GLFW_KEY_S) {
+        s = true;
+    }
+    if (key == GLFW_KEY_A) {
+        a = true;
+    }
+    if (key == GLFW_KEY_D) {
+        d = true;
+    }
+    if (key == GLFW_KEY_R) {
+        r = true;
+    }
+    if (key == GLFW_KEY_F) {
+        f = true;
+    }
+
+    if (key == GLFW_KEY_1) {
+        p1 = true;
+    }
+    if (key == GLFW_KEY_2) {
+        p2 = true;
+    }
+
+    if (key == GLFW_KEY_3) {
+        p3 = true;
+    }
+    if (key == GLFW_KEY_4) {
+        p4 = true;
+    }
+
+    if (key == GLFW_KEY_5) {
+        p5 = true;
+    }
+    if (key == GLFW_KEY_6) {
+        p6 = true;
+    }
+
+    if (key == GLFW_KEY_7) {
+        p7 = true;
+    }
+    if (key == GLFW_KEY_8) {
+        p8 = true;
+    }
 }
 
 
 void Lab4::OnKeyRelease(int key, int mods)
 {
     // Add key release event
+    if (key == GLFW_KEY_W) {
+        w = false;
+    }
+    if (key == GLFW_KEY_S) {
+        s = false;
+    }
+    if (key == GLFW_KEY_A) {
+        a = false;
+    }
+    if (key == GLFW_KEY_D) {
+        d = false;
+    }
+    if (key == GLFW_KEY_R) {
+        r = false;
+    }
+    if (key == GLFW_KEY_F) {
+        f = false;
+    }
+
+    if (key == GLFW_KEY_1) {
+        p1 = false;
+    }
+    if (key == GLFW_KEY_2) {
+        p2 = false;
+    }
+
+    if (key == GLFW_KEY_3) {
+        p3 = false;
+    }
+    if (key == GLFW_KEY_4) {
+        p4 = false;
+    }
+
+    if (key == GLFW_KEY_5) {
+        p5 = false;
+    }
+    if (key == GLFW_KEY_6) {
+        p6 = false;
+    }
+
+    if (key == GLFW_KEY_7) {
+        p7 = false;
+    }
+    if (key == GLFW_KEY_8) {
+        p8 = false;
+    }
 }
 
 

@@ -57,7 +57,7 @@ namespace transform3D
             glm::mat4(
                 glm::cos(radians), 0, glm::sin(radians), 0,
                 0, 1, 0, 0,
-                -glm::sin(radians),0, glm::cos(radians), 0,
+                -glm::sin(radians), 0,glm::cos(radians), 0,
                 0, 0, 0, 1
             )
         );
@@ -71,8 +71,8 @@ namespace transform3D
         return glm::transpose(
             glm::mat4(
                 1, 0, 0, 0,
-                0, glm::cos(radians), 0, -glm::sin(radians),
-                0, glm::sin(radians), 0, glm::cos(radians),
+                0, glm::cos(radians), -glm::sin(radians), 0,
+                0, glm::sin(radians), glm::cos(radians), 0,
                 0, 0, 0, 1
             )
         );
