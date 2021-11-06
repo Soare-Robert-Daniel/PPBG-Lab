@@ -91,6 +91,22 @@ void Lab5::Update(float deltaTimeSeconds)
     // function uses the view matrix from the camera that you just
     // implemented, and the local projection matrix.
 
+    {
+        glm::mat4 modelMatrix = glm::mat4(1);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(-2, 2, 0));
+        modelMatrix = glm::rotate(modelMatrix, RADIANS(30.0f), glm::vec3(0, 1, 0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
+        RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+    }
+
+    {
+        glm::mat4 modelMatrix = glm::mat4(1);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(2, 2, 0));
+        modelMatrix = glm::rotate(modelMatrix, RADIANS(130.0f), glm::vec3(0, 1, 1));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.8f));
+        RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+    }
+
     // Render the camera target. This is useful for understanding where
     // the rotation point is, when moving in third-person camera mode.
     if (renderCameraTarget)
@@ -173,6 +189,32 @@ void Lab5::OnInputUpdate(float deltaTime, int mods)
     // for any hardcoded projection arguments (can you find any?) and
     // replace them with those extra variables.
 
+    if (window->KeyHold(GLFW_KEY_1)) {
+        FOV += deltaTime * 10;
+
+        left -= deltaTime * 10;
+        right += deltaTime * 10;
+
+        bottom -= deltaTime * 20;
+        top += deltaTime * 20;
+    }
+
+    if (window->KeyHold(GLFW_KEY_2)) {
+        FOV -= deltaTime * 10;
+
+        left += deltaTime * 10;
+        right -= deltaTime * 10;
+
+        bottom += deltaTime * 20;
+        top -= deltaTime * 20;
+    }
+
+    if (projectionType == 0) {
+        projectionMatrix = glm::perspective(RADIANS(FOV), window->props.aspectRatio, 0.01f, 200.0f);
+    }
+    else {
+        projectionMatrix = glm::ortho(left, right, bottom, top, 0.01f, 200.0f);
+    }
 }
 
 
@@ -184,7 +226,13 @@ void Lab5::OnKeyPress(int key, int mods)
         renderCameraTarget = !renderCameraTarget;
     }
     // TODO(student): Switch projections
-
+    if (key == GLFW_KEY_O) {
+        projectionType = 1;
+    }
+    if (key == GLFW_KEY_P) {
+        projectionType = 0;
+    }
+ 
 }
 
 
