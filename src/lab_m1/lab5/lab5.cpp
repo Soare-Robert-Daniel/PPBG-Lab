@@ -208,12 +208,10 @@ void Lab5::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
             // TODO(student): Rotate the camera in first-person mode around
             // OX and OY using `deltaX` and `deltaY`. Use the sensitivity
             // variables for setting up the rotation speed.
-            //if (deltaY < 0.0000001f && deltaX > 0.0000001f) {
-                camera->RotateFirstPerson_OX(sensivityOX * deltaY * -1);
-            //}
-            //else if (deltaY > 0.0000001f && deltaX < 0.0000001f) {
-                camera->RotateFirstPerson_OY(sensivityOY * deltaX * -1);
-            //}
+            
+            camera->RotateFirstPerson_OX(sensivityOX * deltaY * -1);
+            camera->RotateFirstPerson_OY(sensivityOY * deltaX * -1);
+          
         }
 
         if (window->GetSpecialKeyState() & GLFW_MOD_CONTROL) {
@@ -221,7 +219,8 @@ void Lab5::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
             // TODO(student): Rotate the camera in third-person mode around
             // OX and OY using `deltaX` and `deltaY`. Use the sensitivity
             // variables for setting up the rotation speed.
-
+            camera->RotateThirdPerson_OX(sensivityOX * deltaY * -1);
+            camera->RotateThirdPerson_OY(sensivityOY * deltaX * -1);
         }
     }
 }

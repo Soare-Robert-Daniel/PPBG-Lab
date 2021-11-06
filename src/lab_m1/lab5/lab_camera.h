@@ -121,21 +121,27 @@ namespace implemented
         {
             // TODO(student): Rotate the camera in third-person mode around
             // the OX axis. Use `distanceToTarget` as translation distance.
-
+            TranslateForward(distanceToTarget);
+            RotateFirstPerson_OX(angle);
+            TranslateForward(-distanceToTarget);
         }
 
         void RotateThirdPerson_OY(float angle)
         {
             // TODO(student): Rotate the camera in third-person mode around
             // the OY axis.
-
+            TranslateForward(distanceToTarget);
+            RotateFirstPerson_OY(angle);
+            TranslateForward(-distanceToTarget);
         }
 
         void RotateThirdPerson_OZ(float angle)
         {
             // TODO(student): Rotate the camera in third-person mode around
             // the OZ axis.
-
+            TranslateForward(distanceToTarget);
+            RotateFirstPerson_OZ(angle);
+            TranslateForward(-distanceToTarget);
         }
 
         glm::mat4 GetViewMatrix()
