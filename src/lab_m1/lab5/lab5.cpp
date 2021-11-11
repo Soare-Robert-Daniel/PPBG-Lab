@@ -45,7 +45,12 @@ void Lab5::Init()
 
     // TODO(student): After you implement the changing of the projection
     // parameters, remove hardcodings of these parameters
-    projectionMatrix = glm::perspective(RADIANS(60), window->props.aspectRatio, 0.01f, 200.0f);
+    if (projectionType == 0) {
+        projectionMatrix = glm::perspective(RADIANS(FOV), window->props.aspectRatio, 0.01f, 200.0f);
+    }
+    else {
+        projectionMatrix = glm::ortho(left, right, bottom, top, 0.01f, 200.0f);
+    }
 
 }
 
