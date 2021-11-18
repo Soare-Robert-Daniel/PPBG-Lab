@@ -21,10 +21,11 @@ out vec3 normal;
 void main()
 {
     // TODO(student): Send output to fragment shader
-    vec3 color = v_color + +vec3(0, 1, 0) * sin(time); // BONUS
+    vec3 color = v_color + vec3(0, 1, 1) * sin(3 * time) * cos(time / 10); // BONUS
     frag_color = color;
+
     normal = v_normal;
     // TODO(student): Compute gl_Position
-    vec3 pos = v_position + vec3(0, 1, 0) * sin(time); // BONUS
-    gl_Position = Projection * View * Model * vec4(pos, 1.0);
+    vec4 pos = Model * vec4( v_position , 1) + vec4(0, sin(time), 0, 0); // BONUS
+    gl_Position = Projection * View * pos ;
 }
