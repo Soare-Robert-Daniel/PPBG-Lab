@@ -57,9 +57,14 @@ void main()
     }
 
     // TODO(student): Compute light
-    vec3 d = light_position - v_position;
+    float kc = 0.3;
+    float kl = 0.5;
+    float kq = 1.8;
+
+    vec3 d = light_position - world_pos;
     float distanta_patratica = dot(d, d);
-    float atenuare = 1 / distanta_patratica;
+    float atenuare = 1 / (kc + kl * sqrt(distanta_patratica) +
+        kq * distanta_patratica);
     float intensitate = material_ks + ambient_light + atenuare * (diffuse_light + specular_light);
     // TODO(student): Send color light output to fragment shader
     color = object_color * intensitate;

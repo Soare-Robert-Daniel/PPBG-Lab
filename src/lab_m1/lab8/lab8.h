@@ -37,6 +37,6 @@ namespace m1
         float materialKs;
 
         // TODO(student): If you need any other class variables, define them here.
-
+        bool isSpotlight = true;
     };
 }   // namespace m1

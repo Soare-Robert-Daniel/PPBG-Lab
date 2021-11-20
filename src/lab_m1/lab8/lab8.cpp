@@ -82,7 +82,7 @@ void Lab8::Update(float deltaTimeSeconds)
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 1, 0));
         // TODO(student): Add or change the object colors
-        RenderSimpleMesh(meshes["sphere"], shaders["LabShader"], modelMatrix);
+        RenderSimpleMesh(meshes["sphere"], shaders["LabShader"], modelMatrix, glm::vec3(0, 0.75, 0.2));
 
     }
 
@@ -92,7 +92,7 @@ void Lab8::Update(float deltaTimeSeconds)
         modelMatrix = glm::rotate(modelMatrix, RADIANS(60.0f), glm::vec3(1, 0, 0));
         modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
         // TODO(student): Add or change the object colors
-        RenderSimpleMesh(meshes["box"], shaders["LabShader"], modelMatrix);
+        RenderSimpleMesh(meshes["box"], shaders["LabShader"], modelMatrix, glm::vec3(1, 0.75, 0));
 
     }
 
@@ -163,6 +163,8 @@ void Lab8::RenderSimpleMesh(Mesh *mesh, Shader *shader, const glm::mat4 & modelM
     glUniform3f(object_color, color.r, color.g, color.b);
 
     // TODO(student): Set any other shader uniforms that you need
+    int loc_spotlight = glGetUniformLocation(shader->program, "is_spotlight");
+    glUniform1i(loc_spotlight, isSpotlight);
 
     // Bind model matrix
     GLint loc_model_matrix = glGetUniformLocation(shader->program, "Model");
@@ -220,7 +222,7 @@ void Lab8::OnKeyPress(int key, int mods)
     // Add key press event
 
     // TODO(student): Set keys that you might need
-
+    if (key == GLFW_KEY_F) isSpotlight = !isSpotlight;
 }
 
 

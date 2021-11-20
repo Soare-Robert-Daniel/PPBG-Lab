@@ -153,6 +153,7 @@ void Lab7::RenderSimpleMesh(Mesh *mesh, Shader *shader, const glm::mat4 & modelM
     int loc_object_color = glGetUniformLocation(shader->program, "object_color");
     glUniform3fv(loc_object_color, 1, glm::value_ptr(color));
 
+
     // Bind model matrix
     GLint loc_model_matrix = glGetUniformLocation(shader->program, "Model");
     glUniformMatrix4fv(loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));

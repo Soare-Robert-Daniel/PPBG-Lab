@@ -14,6 +14,7 @@ uniform float material_ks;
 uniform int material_shininess;
 
 // TODO(student): Declare any other uniforms
+uniform bool is_spotlight;
 
 uniform vec3 object_color;
 
@@ -41,24 +42,43 @@ void main()
         specular_light = material_ks * pow(max(dot(world_normal, H), 0), material_shininess);
     }
 
+
+
     // TODO(student): If (and only if) the light is a spotlight, we need to do
     // some additional things.
-    float cut_off = radians(30.0f);
-    float spot_light = dot(-L, light_direction);
-    float spot_light_limit = cos(cut_off);
-
     float intensitate = 0;
-    if (spot_light > cos(cut_off))
-    {
-        float linear_att = (spot_light - spot_light_limit) / (1.0f - spot_light_limit);
-        float light_att_factor = pow(linear_att, 2);
-        intensitate = material_ks + ambient_light + light_att_factor * (diffuse_light + specular_light);
+    float atenuare = 0;
+
+    float kc = 0.3;
+    float kl = 0.5;
+    float kq = 1.8;
+
+    if (is_spotlight) {
+        float cut_off = radians(30.0f);
+        float spot_light = dot(-L, light_direction);
+        float spot_light_limit = cos(cut_off);
+
+
+        if (spot_light > cos(cut_off))
+        {
+            float linear_att = (spot_light - spot_light_limit) / (1.0f - spot_light_limit);
+            float light_att_factor = pow(linear_att, 2);
+            atenuare = light_att_factor;
+        }
     }
+    else {
+        vec3 d = light_position - world_position;
+        float distanta_patratica = dot(d, d);
+        atenuare = 1 / ( kc + kl * sqrt(distanta_patratica) +
+             kq * distanta_patratica );
+    }
+
   
     // TODO(student): Compute the total light. You can just add the components
     // together, but if you're feeling extra fancy, you can add individual
     // colors to the light components. To do that, pick some vec3 colors that
     // you like, and multiply them with the respective light components.
+    intensitate = material_ks + ambient_light + atenuare * (diffuse_light + specular_light);
 
     // TODO(student): Write pixel out color
     out_color = vec4(object_color * intensitate, 1);
