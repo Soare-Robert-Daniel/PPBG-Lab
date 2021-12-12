@@ -45,7 +45,7 @@ void Lab2::Init()
     no_of_generated_points = 10;            // number of points on a Bezier curve
     no_of_instances = 5;                    // number of instances (number of curves that contain the surface)
     max_translate = 8.0f;                   // for the translation surface, it's the distance between the first and the last curve
-    max_rotate = glm::radians(360.0f);      // for the rotation surface, it's the angle between the first and the last curve
+    max_rotate = glm::radians(90.0f);      // for the rotation surface, it's the angle between the first and the last curve
 
     // Define control points
     control_p0 = glm::vec3(-4.0, -2.5,  1.0);
@@ -133,6 +133,9 @@ void Lab2::Update(float deltaTimeSeconds)
     // creating the translation/rotation surfaces (max_translate, max_rotate).
     // NOTE: If you're feeling lost and need a frame of reference while doing
     // this lab, go to `FrameEnd()` and activate `DrawCoordinateSystem()`.
+    glUniform1i(glGetUniformLocation(shader->program, "no_of_generated_points"), no_of_generated_points);
+    glUniform1f(glGetUniformLocation(shader->program, "max_translate"), max_translate);
+    glUniform1f(glGetUniformLocation(shader->program, "max_rotate"), max_rotate);
 
     Mesh* mesh = meshes["surface"];
 
@@ -202,7 +205,18 @@ void Lab2::OnKeyPress(int key, int mods)
     // TODO(student): Use keys to change the number of instances and the
     // number of generated points. Avoid the camera keys, and avoid the
     // the keys from `OnInputUpdate`.
-
+    if (window->KeyHold(GLFW_KEY_Z) && no_of_instances > 1) {
+        no_of_instances -= 1;
+    }
+    if (window->KeyHold(GLFW_KEY_X) ) {
+        no_of_instances += 1;
+    }
+    if (window->KeyHold(GLFW_KEY_C) && no_of_instances > 1) {
+        no_of_generated_points -= 1;
+    }
+    if (window->KeyHold(GLFW_KEY_V) ) {
+        no_of_generated_points += 1;
+    }
 }
 
 

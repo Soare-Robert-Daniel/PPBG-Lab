@@ -4,7 +4,7 @@
 // TODO(student): First, generate a curve (via line strip),
 // then a rotation/translation surface (via triangle strip)
 layout(lines) in;
-layout(line_strip, max_vertices = 256) out;
+layout(triangle_strip, max_vertices = 256) out;
 
 // Uniform properties
 uniform mat4 View;
@@ -12,7 +12,9 @@ uniform mat4 Projection;
 uniform vec3 control_p0, control_p1, control_p2, control_p3;
 uniform int no_of_instances;
 // TODO(student): Declare any other uniforms here
-
+uniform int no_of_generated_points;
+uniform float max_translate;
+uniform float max_rotate;
 // Input
 in int instance[2];
 
@@ -71,11 +73,18 @@ void main()
     {
         // TODO(student): Rather than emitting vertices for the control
         // points, you must emit vertices that approximate the curve itself.
-        gl_Position = Projection * View * vec4(control_p0, 1);   EmitVertex();
-        gl_Position = Projection * View * vec4(control_p1, 1);   EmitVertex();
-        gl_Position = Projection * View * vec4(control_p2, 1);   EmitVertex();
-        gl_Position = Projection * View * vec4(control_p3, 1);   EmitVertex();
-        EndPrimitive();
+        float delta_t = 1.0f / no_of_generated_points;
+        float dist = max_translate / no_of_instances;
+        float rot_step = max_rotate / no_of_instances;
 
+        for (int t = 0; t < no_of_generated_points; ++t) {
+            vec3 p = bezier(t * delta_t);
+            gl_Position = Projection * View * vec4(translateX( rotateY(p, instance[0] * rot_step), instance[0] * dist), 1);
+            EmitVertex();
+            gl_Position = Projection * View * vec4(translateX(rotateY(p, (instance[0] + 1 ) * rot_step), (instance[0] + 1) * dist), 1);
+            EmitVertex();
+        }
+
+        EndPrimitive();
     }
 }
