@@ -154,8 +154,10 @@ unsigned int Lab4::UploadCubeMapTexture(const std::string &pos_x, const std::str
 
     unsigned int textureID = 0;
     // TODO(student): Create the texture
+    glGenTextures(1, &textureID);
 
     // TODO(student): Bind the texture
+    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
@@ -175,6 +177,12 @@ unsigned int Lab4::UploadCubeMapTexture(const std::string &pos_x, const std::str
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     // TODO(student): Load texture information for each face
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data_pos_x);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data_pos_y);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data_pos_z);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data_neg_x);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data_neg_y);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data_neg_z);
 
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
     if (GetOpenGLError() == GL_INVALID_OPERATION)

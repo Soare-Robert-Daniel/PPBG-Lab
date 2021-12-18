@@ -17,16 +17,16 @@ layout(location = 0) out vec4 out_color;
 vec3 myReflect()
 {
     // TODO(student): Compute the reflection color value
-    return vec3(0.5);
-
+    vec3 pos_reflect = reflect( world_position - camera_position, world_normal);
+    return texture(texture_cubemap, pos_reflect).xyz;
 }
 
 
 vec3 myRefract(float refractive_index)
 {
     // TODO(student): Compute the refraction color value
-    return vec3(0.5);
-
+    vec3 pos_refract = refract(world_position - camera_position, world_normal, refractive_index);
+    return texture(texture_cubemap, pos_refract).xyz;
 }
 
 
@@ -37,7 +37,7 @@ void main()
 
     // You can change the value of LIGHT_PROP to experiment
     // with different light propagation methods.
-    const int LIGHT_PROP = LIGHT_PROP_REFLECTION;
+    const int LIGHT_PROP = 0;
 
     if (LIGHT_PROP == LIGHT_PROP_REFLECTION)
     {
@@ -47,4 +47,5 @@ void main()
     {
         out_color = vec4(myRefract(1.33), 0);
     }
+
 }
