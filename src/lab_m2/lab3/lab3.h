@@ -32,5 +32,6 @@ namespace m2
         void OnWindowResize(int width, int height) override;
 
         // TODO(student): Declare the frame buffer, and any other class members here.
+        FrameBuffer* frameBuffer;
     };
 }   // namespace m2

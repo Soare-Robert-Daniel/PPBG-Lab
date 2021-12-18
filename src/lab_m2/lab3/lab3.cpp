@@ -58,7 +58,13 @@ void Lab3::Init()
     auto resolution = window->GetResolution();
 
     // TODO(student): Create a new framebuffer and generate attached textures
+    frameBuffer = new FrameBuffer();
 
+
+    auto width = resolution.x;
+    auto height = resolution.y;
+    
+    frameBuffer->Generate(width, height, 1);
 }
 
 
@@ -85,6 +91,11 @@ void Lab3::Update(float deltaTimeSeconds)
     // TODO(student): Render scene view from a mirrorred point of view. Use
     // `camera->SetPosition()` and `camera->SetRotation(glm::quat(euler_angles))`
     {
+        camera->SetPosition(mirrorPos);
+        camera->SetRotation(mirrorRotation);
+
+        frameBuffer->Bind();
+        DrawScene();
 
     }
 
@@ -93,6 +104,7 @@ void Lab3::Update(float deltaTimeSeconds)
         camera->SetPosition(camPosition);
         camera->SetRotation(camRotation);
 
+        frameBuffer->BindDefault();
         DrawScene();
     }
 
@@ -101,6 +113,7 @@ void Lab3::Update(float deltaTimeSeconds)
         auto shader = shaders["ShaderLab3"];
         
         // TODO(student): Use the mirror texture
+        frameBuffer->BindTexture(0, GL_TEXTURE0);
 
         glm::mat4 modelMatrix(1);
         modelMatrix = glm::translate(modelMatrix, mirrorPos);
