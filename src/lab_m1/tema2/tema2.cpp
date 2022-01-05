@@ -18,6 +18,7 @@ Tema2::Tema2()
 {
     map = Map();
     camera = new tema2::Camera();
+    isFirstPerson = false;
 
 
     int enemCounter = 0;
@@ -43,7 +44,7 @@ void Tema2::Init()
     renderCameraTarget = false;
 
     
-    camera->Set(glm::vec3(0, 2, 3.5f), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+    camera->Set(glm::vec3(2, 0.5f, 2), glm::vec3(2.5f, 0.1f, 2.5f), glm::vec3(0, 1, 0));
 
     player = new tema2::Player(camera->GetTargetPosition(), 2, "box");
     player->camera = camera;
@@ -60,14 +61,8 @@ void Tema2::Init()
         meshes[mesh->GetMeshID()] = mesh;
     }
 
-    // TODO(student): After you implement the changing of the projection
-    // parameters, remove hardcodings of these parameters
-    if (projectionType == 0) {
-        projectionMatrix = glm::perspective(RADIANS(FOV), window->props.aspectRatio, 0.01f, 200.0f);
-    }
-    else {
-        projectionMatrix = glm::ortho(left, right, bottom, top, 0.01f, 200.0f);
-    }
+    
+     projectionMatrix = glm::perspective(RADIANS(FOV), window->props.aspectRatio, 0.01f, 200.0f);
 
 }
 
@@ -94,7 +89,7 @@ void Tema2::Update(float deltaTimeSeconds)
     for (auto &e : enemies) {
         auto p = e.cell - currentCell;
         if (glm::abs(p.x) < 0.5f && glm::abs(p.y) < 0.5f) {
-            cout << "Cell " << currentCell.x << " " << currentCell.y << '\n';
+            // cout << "Cell " << currentCell.x << " " << currentCell.y << '\n';
             e.move(camera->GetTargetPosition(), deltaTimeSeconds);
         }
     }
@@ -120,12 +115,26 @@ void Tema2::Update(float deltaTimeSeconds)
         RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
     }
 
-    // Render the camera target. This is useful for understanding where
-    // the rotation point is, when moving in third-person camera mode.
-    if (! renderCameraTarget)
+    cout << "Projectile " << projectiles.size() << '\n';
+    for (auto& p : projectiles) {
+        p.move(deltaTimeSeconds);
+
+        // TODO: delete the projectile when is over
+        if (!p.isOver()) {
+            glm::mat4 modelMatrix = glm::mat4(1);
+            modelMatrix = glm::translate(modelMatrix, p.position);
+            modelMatrix = glm::scale(modelMatrix, glm::vec3(0.05f));
+            RenderMesh(meshes["sphere"], shaders["VertexNormal"], modelMatrix);
+        }
+    }
+
+
+    if ( renderCameraTarget )
     {
         glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition());
+        auto pos = camera->GetTargetPosition();
+        pos.y = 0.1f;
+        modelMatrix = glm::translate(modelMatrix, pos);
         modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1f));
         RenderMesh(meshes["sphere"], shaders["VertexNormal"], modelMatrix);
     }
@@ -161,9 +170,7 @@ void Tema2::RenderMesh(Mesh * mesh, Shader * shader, const glm::mat4 & modelMatr
 
 void Tema2::OnInputUpdate(float deltaTime, int mods)
 {
-    // move the camera only if MOUSE_RIGHT button is pressed
-    if (window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT))
-    {
+
         float cameraSpeed = 2.0f;
 
         if (window->KeyHold(GLFW_KEY_W)) {
@@ -195,7 +202,13 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
             // TODO(student): Translate the camera upward
             camera->TranslateUpward(deltaTime);
         }
-    }
+
+        if (!isFirstPerson) {
+            camera->position.y = 1;
+        }
+        else {
+            camera->position.y = 0.2f;
+        }
 
     // TODO(student): Change projection parameters. Declare any extra
     // variables you might need in the class header. Inspect this file
@@ -221,13 +234,6 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
         bottom += deltaTime * 20;
         top -= deltaTime * 20;
     }
-
-    if (projectionType == 0) {
-        projectionMatrix = glm::perspective(RADIANS(FOV), window->props.aspectRatio, 0.01f, 200.0f);
-    }
-    else {
-        projectionMatrix = glm::ortho(left, right, bottom, top, 0.01f, 200.0f);
-    }
 }
 
 
@@ -238,14 +244,11 @@ void Tema2::OnKeyPress(int key, int mods)
     {
         renderCameraTarget = !renderCameraTarget;
     }
-    // TODO(student): Switch projections
-    if (key == GLFW_KEY_O) {
-        projectionType = 1;
+
+    if (key == GLFW_KEY_SPACE && isFirstPerson) {
+        // Shoot projectile
+        projectiles.push_back(Projectile(camera->GetTargetPosition(), camera->forward, PROJ_SPEED, PROJ_LIFETIME));
     }
-    if (key == GLFW_KEY_P) {
-        projectionType = 0;
-    }
- 
 }
 
 
@@ -259,25 +262,26 @@ void Tema2::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
 {
     // Add mouse move event
 
-    if (window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT))
-    {
-        float sensivityOX = 0.001f;
-        float sensivityOY = 0.001f;
+    float sensivityOX = 0.001f;
+    float sensivityOY = 0.001f;
 
-        if (window->GetSpecialKeyState() == 0) {
-            renderCameraTarget = false;
+    if (window->GetSpecialKeyState() == 0) {
+        camera->RotateThirdPerson_OX(sensivityOX * deltaY * -1);
+        camera->RotateThirdPerson_OY(sensivityOY * deltaX * -1);
+    }
 
-            camera->RotateThirdPerson_OX(sensivityOX * deltaY * -1);
-            camera->RotateThirdPerson_OY(sensivityOY * deltaX * -1);
-          
-        }
+    if (window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT)) {
+        renderCameraTarget = false;
+        isFirstPerson = true;
 
-        if (window->GetSpecialKeyState() & GLFW_MOD_CONTROL) {
-            renderCameraTarget = true;
+        camera->RotateFirstPerson_OX(sensivityOX * deltaY * -1);
+        camera->RotateFirstPerson_OY(sensivityOY * deltaX * -1);
 
-            camera->RotateFirstPerson_OX(sensivityOX * deltaY * -1);
-            camera->RotateFirstPerson_OY(sensivityOY * deltaX * -1);
-        }
+        
+    }
+    else {
+        isFirstPerson = false;
+        renderCameraTarget = true;
     }
 }
 

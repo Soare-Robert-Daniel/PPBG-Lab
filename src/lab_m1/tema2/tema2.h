@@ -7,6 +7,8 @@
 
 constexpr auto MAP_SIZE = 20;
 constexpr auto ENEMIES = 50;
+constexpr auto PROJ_SPEED = 3.0f;
+constexpr auto PROJ_LIFETIME = 1.0f;
 
 namespace m1
 {
@@ -58,6 +60,29 @@ namespace m1
 
     };
 
+    struct Projectile {
+        glm::vec3 position;
+        glm::vec3 direction;
+        float speed;
+        float lifetime;
+
+        Projectile(glm::vec3 pos, glm::vec3 dir, float s, float l) {
+            position = pos;
+            direction = dir;
+            speed = s;
+            lifetime = l;
+        }
+
+        void move(float deltaTimeSeconds) {
+            position += speed * direction * deltaTimeSeconds;
+            lifetime -= deltaTimeSeconds;
+        }
+
+        bool isOver() {
+            return lifetime < 0.0f;
+        }
+    };
+
     class Tema2 : public gfxc::SimpleScene
     {
      public:
@@ -87,16 +112,16 @@ namespace m1
 
          Map map;
          std::vector<Enemy> enemies;
+         std::vector<Projectile> projectiles;
 
          glm::vec2 currentCell;
+         bool isFirstPerson;
 
 
         tema2::Camera *camera;
         glm::mat4 projectionMatrix;
         bool renderCameraTarget;
 
-        // TODO(student): If you need any other class variables, define them here.
-        int projectionType = 0;
         float FOV = 60.f;
 
         float left = -3.f;
