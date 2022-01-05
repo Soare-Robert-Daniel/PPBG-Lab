@@ -3,8 +3,10 @@
 #include "components/simple_scene.h"
 #include "lab_m1/tema2/lab_camera.h"
 #include "lab_m1/tema2/player.h"
+#include <vector>
 
 constexpr auto MAP_SIZE = 20;
+constexpr auto ENEMIES = 50;
 
 namespace m1
 {
@@ -27,6 +29,33 @@ namespace m1
         int rows = MAP_SIZE;
         int cols = MAP_SIZE;
         Cell data[MAP_SIZE][MAP_SIZE];
+    };
+
+    struct Enemy {
+        glm::vec3 position;
+        glm::vec2 cell;
+        float rotation;
+        int life;
+        float speed;
+
+        Enemy(glm::vec3 p, glm::vec2 c) {
+            position = p;
+            cell = c;
+            life = 5;
+            rotation = 0.0f;
+            speed = 1.0f;
+        }
+
+        void move(glm::vec3 target, float deltaTimeSeconds) {
+            // TODO: stop the movement if the difference is small
+            auto dir = glm::normalize(target - position);
+            dir.y = 0;
+            position += speed * dir * deltaTimeSeconds;
+
+            position.x = glm::clamp(position.x, cell.x, cell.x + 1);
+            position.z = glm::clamp(position.z, cell.y, cell.y + 1);
+        }
+
     };
 
     class Tema2 : public gfxc::SimpleScene
@@ -57,6 +86,9 @@ namespace m1
          tema2::Player *player;
 
          Map map;
+         std::vector<Enemy> enemies;
+
+         glm::vec2 currentCell;
 
 
         tema2::Camera *camera;

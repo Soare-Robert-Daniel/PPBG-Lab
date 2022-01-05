@@ -17,6 +17,19 @@ using namespace m1;
 Tema2::Tema2()
 {
     map = Map();
+    camera = new tema2::Camera();
+
+
+    int enemCounter = 0;
+    for (int i = 0; i < map.rows; ++i) {
+        for (int j = 0; j < map.cols; ++j) {
+            if (map.data[i][j] == Cell::PATH && enemCounter < ENEMIES) {
+                map.data[i][j] = Cell::ENEMY;
+                enemies.push_back(Enemy(glm::vec3(i + 0.5f, 0.1f, j + 0.5f), glm::vec2(i, j)));
+                enemCounter++;
+            }
+        }
+    }
 }
 
 
@@ -29,7 +42,7 @@ void Tema2::Init()
 {
     renderCameraTarget = false;
 
-    camera = new tema2::Camera();
+    
     camera->Set(glm::vec3(0, 2, 3.5f), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 
     player = new tema2::Player(camera->GetTargetPosition(), 2, "box");
@@ -73,16 +86,38 @@ void Tema2::FrameStart()
 
 void Tema2::Update(float deltaTimeSeconds)
 {
+    
+    currentCell.x = glm::floor(camera->GetTargetPosition().x);
+    currentCell.y = glm::floor(camera->GetTargetPosition().z);
+
+    // Move Enemies
+    for (auto &e : enemies) {
+        auto p = e.cell - currentCell;
+        if (glm::abs(p.x) < 0.5f && glm::abs(p.y) < 0.5f) {
+            cout << "Cell " << currentCell.x << " " << currentCell.y << '\n';
+            e.move(camera->GetTargetPosition(), deltaTimeSeconds);
+        }
+    }
+
+    
     // Render Maze
     for (int i = 0; i < map.rows; ++i) {
         for (int j = 0; j < map.cols; ++j) {
             if (map.data[i][j] == Cell::WALL) {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, glm::vec3(i, 0.5f, j));
+                modelMatrix = glm::translate(modelMatrix, glm::vec3(i + 0.5f, 0.5f, j + 0.5f));
                 modelMatrix = glm::rotate(modelMatrix, RADIANS(0.0f), glm::vec3(0, 1, 0));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
         }
+    }
+
+    for (auto& e : enemies) {
+        glm::mat4 modelMatrix = glm::mat4(1);
+        modelMatrix = glm::translate(modelMatrix, e.position);
+        modelMatrix = glm::rotate(modelMatrix, RADIANS(0.0f), glm::vec3(0, 1, 0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1f));
+        RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
     }
 
     // Render the camera target. This is useful for understanding where
