@@ -107,6 +107,7 @@ namespace m1
         void OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY) override;
         void OnWindowResize(int width, int height) override;
 
+
      protected:
          tema2::Player *player;
 

@@ -61,6 +61,14 @@ void Tema2::Init()
         meshes[mesh->GetMeshID()] = mesh;
     }
 
+    {
+        Shader* shader = new Shader("HitEnemyShader");
+        shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "shaders", "VertexShader.glsl"), GL_VERTEX_SHADER);
+        shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "tema2", "shaders", "FragmentShader.glsl"), GL_FRAGMENT_SHADER);
+        shader->CreateAndLink();
+        shaders[shader->GetName()] = shader;
+    }
+
     
      projectionMatrix = glm::perspective(RADIANS(FOV), window->props.aspectRatio, 0.01f, 200.0f);
 
@@ -112,7 +120,7 @@ void Tema2::Update(float deltaTimeSeconds)
         modelMatrix = glm::translate(modelMatrix, e.position);
         modelMatrix = glm::rotate(modelMatrix, RADIANS(0.0f), glm::vec3(0, 1, 0));
         modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1f));
-        RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+        RenderMesh(meshes["sphere"], shaders["HitEnemyShader"], modelMatrix);
     }
 
     cout << "Projectile " << projectiles.size() << '\n';
@@ -157,6 +165,9 @@ void Tema2::RenderMesh(Mesh * mesh, Shader * shader, const glm::mat4 & modelMatr
     glUniformMatrix4fv(shader->loc_view_matrix, 1, GL_FALSE, glm::value_ptr(camera->GetViewMatrix()));
     glUniformMatrix4fv(shader->loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
     glUniformMatrix4fv(shader->loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+
+    int timeLocation = glGetUniformLocation(shader->GetProgramID(), "time");
+    glUniform1f(timeLocation, Engine::GetElapsedTime());
 
     mesh->Render();
 }
