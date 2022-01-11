@@ -44,7 +44,7 @@ void Tema2::Init()
     renderCameraTarget = false;
 
     
-    camera->Set(glm::vec3(2, 0.5f, 2), glm::vec3(2.5f, 0.1f, 2.5f), glm::vec3(0, 1, 0));
+    camera->Set(glm::vec3(1.5, 0.5f, 1.5), glm::vec3(2.5f, 0.1f, 2.5f), glm::vec3(0, 1, 0));
 
     player = new tema2::Player(camera->GetTargetPosition(), 2, "box");
     player->camera = camera;
@@ -123,7 +123,7 @@ void Tema2::Update(float deltaTimeSeconds)
         RenderMesh(meshes["sphere"], shaders["HitEnemyShader"], modelMatrix);
     }
 
-    cout << "Projectile " << projectiles.size() << '\n';
+    // cout << "Projectile " << projectiles.size() << '\n';
     for (auto& p : projectiles) {
         p.move(deltaTimeSeconds);
 
@@ -218,7 +218,7 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
             camera->position.y = 1;
         }
         else {
-            camera->position.y = 0.2f;
+            camera->position.y = 3.0f;
         }
 
     // TODO(student): Change projection parameters. Declare any extra

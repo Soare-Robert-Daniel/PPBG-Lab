@@ -3,7 +3,10 @@
 #include "components/simple_scene.h"
 #include "lab_m1/tema2/lab_camera.h"
 #include "lab_m1/tema2/player.h"
+#include <stdlib.h>
 #include <vector>
+#include <iostream>
+#include <tuple>
 
 constexpr auto MAP_SIZE = 20;
 constexpr auto ENEMIES = 50;
@@ -15,22 +18,75 @@ namespace m1
     enum class Cell { PLAYER, ENEMY, WALL, PATH};
 
     struct Map {
+
+        int rows = MAP_SIZE;
+        int cols = MAP_SIZE;
+        Cell data[MAP_SIZE][MAP_SIZE];
+
+        int dx[4] = { 1, -1, 0, 0 };
+        int dy[4] = { 0, 0, -1, 1 };
+
         Map() {
             std::fill(*data, *data + rows * cols, Cell::WALL);
 
             // TODO: Replace with Gen Algh
-            for (int i = 1; i < rows - 1; ++i) {
+            GenerateMap();
+           /* for (int i = 1; i < rows - 1; ++i) {
                 for (int j = 1; j < cols - 1; ++j) {
                     if (j % 2 == 0 || i % 2 == 0) {
                         data[i][j] = Cell::PATH;
                     }
                 }
-            }
+            }*/
         }
 
-        int rows = MAP_SIZE;
-        int cols = MAP_SIZE;
-        Cell data[MAP_SIZE][MAP_SIZE];
+        void GenerateMap() {
+            int startX = rand() % MAP_SIZE + 1, startY = rand() % MAP_SIZE + 1;
+            std::vector<std::tuple<int, int>> track = { std::make_tuple(startX, startY) };
+            data[startX][startY] = Cell::PATH;
+
+            int cx, cy, nx, ny;
+
+            while (track.size()) {
+                std::tie (cx, cy) = track.back();
+                auto n = FindNeighbors(cx, cy);
+
+                if (n.size() == 0) {
+                    track.pop_back();
+                }
+                else {
+                    std::tie(nx, ny) = n[rand() % n.size()];
+                    data[nx][ny] = Cell::PATH;
+                    data[(cx + nx) / 2][(cy + ny) / 2] = Cell::PATH;
+
+                    track.push_back(std::make_tuple(nx, ny));
+                }
+            }
+
+        }
+
+        std::vector<std::tuple<int, int>> FindNeighbors(int x, int y) {
+            std::vector<std::tuple<int, int>> n;
+
+            if (x > 1 && data[x - 2][y] == Cell::WALL) {
+                n.push_back(std::make_tuple(x - 2, y));
+            }
+            if (x < MAP_SIZE - 2 && data[x + 2][y] == Cell::WALL) {
+                n.push_back(std::make_tuple(x + 2, y));
+            }
+            if (y > 1 && data[x][y-2] == Cell::WALL) {
+                n.push_back(std::make_tuple(x, y - 2));
+            }
+            if (y < MAP_SIZE - 2 && data[x][y + 2] == Cell::WALL) {
+                n.push_back(std::make_tuple(x, y + 2));
+            }
+
+            return n;
+        }
+
+
+
+       
     };
 
     struct Enemy {
