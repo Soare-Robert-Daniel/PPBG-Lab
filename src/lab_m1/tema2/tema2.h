@@ -168,7 +168,8 @@ namespace m1
         void OnWindowResize(int width, int height) override;
 
         void DrawPlayer();
-
+        void UI();
+        // void RenderMesh2D(Mesh* mesh, Shader* shader, const glm::mat3& modelMatrix);
 
      protected:
          tema2::Player *player;
@@ -188,9 +189,9 @@ namespace m1
 
         float FOV = 60.f;
 
-        float left = -3.f;
-        float right = 3.f;
-        float bottom = -3.f;
-        float top = 3.f;
+        float left = -1.f;
+        float right = 1.f;
+        float bottom = -1.f;
+        float top = 1.f;
     };
 }   // namespace m1

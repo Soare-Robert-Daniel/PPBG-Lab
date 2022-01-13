@@ -4,6 +4,9 @@
 #include <string>
 #include <iostream>
 #include <stdlib.h>
+#include "lab_m1/lab3/transform2D.h"
+#include "lab_m1/lab3/object2D.h"
+
 
 using namespace std;
 using namespace m1;
@@ -17,6 +20,15 @@ using namespace m1;
 
 Tema2::Tema2()
 {
+    {
+        glm::ivec2 resolution = window->GetResolution();
+        auto camera = GetSceneCamera();
+        camera->SetOrthographic(0, (float)resolution.x, 0, (float)resolution.y, 0.01f, 200);
+        camera->SetPosition(glm::vec3(0, 0, 50));
+        camera->SetRotation(glm::vec3(0, 0, 0));
+        camera->Update();
+        GetCameraInput()->SetActive(false);
+    }
     map = Map();
     camera = new tema2::Camera();
     isFirstPerson = false;
@@ -74,9 +86,17 @@ void Tema2::Init()
         shaders[shader->GetName()] = shader;
     }
 
-    
-     projectionMatrix = glm::perspective(RADIANS(FOV), window->props.aspectRatio, 0.01f, 200.0f);
+    glm::vec3 corner = glm::vec3(0, 0, 0);
+    float squareSide = 100;
 
+    Mesh* square1 = object2D::CreateSquare("square1", corner, squareSide, glm::vec3(0.5, 0.5, 0), true);
+    AddMeshToList(square1);
+
+    Mesh* square2 = object2D::CreateSquare("square2", corner, squareSide, glm::vec3(0.5, 0.1, 0.5), true);
+    AddMeshToList(square2);
+
+
+    projectionMatrix = glm::perspective(RADIANS(FOV), window->props.aspectRatio, 0.01f, 200.0f);
 }
 
 
@@ -94,7 +114,6 @@ void Tema2::FrameStart()
 
 void Tema2::Update(float deltaTimeSeconds)
 {
-    
     currentCell.x = glm::floor(camera->GetTargetPosition().x);
     currentCell.y = glm::floor(camera->GetTargetPosition().z);
 
@@ -156,12 +175,14 @@ void Tema2::Update(float deltaTimeSeconds)
     {
         DrawPlayer();
     }
+    UI();
 }
 
 
 void Tema2::FrameEnd()
 {
     DrawCoordinateSystem(camera->GetViewMatrix(), projectionMatrix);
+    
 }
 
 
@@ -285,8 +306,8 @@ void Tema2::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
 {
     // Add mouse move event
 
-    float sensivityOX = 0.001f;
-    float sensivityOY = 0.001f;
+    float sensivityOX = 0.01f;
+    float sensivityOY = 0.01f;
 
     if (window->GetSpecialKeyState() == 0) {
         camera->RotateThirdPerson_OX(sensivityOX * deltaY * -1);
@@ -332,6 +353,20 @@ void Tema2::OnWindowResize(int width, int height)
 
 void m1::Tema2::DrawPlayer()
 {
+   /* function a = vecangle360(v1, v2, n)
+        x = cross(v1, v2);
+    c = sign(dot(x, n)) * norm(x);
+    a = atan2d(c, dot(v1, v2));
+    end*/
+
+    auto ref = glm::vec3(0, camera->forward.y, 1);
+    auto x = glm::normalize(glm::cross(camera->forward, ref))
+        ;
+    auto c = glm::sign(glm::dot(x, glm::vec3(0, 1, 0))) * x.length();
+    auto angle = glm::degrees(
+        glm::atan2f(c, glm::dot(camera->forward, ref))
+    );
+    // angle = 0;
     
     // Body
     {
@@ -340,6 +375,7 @@ void m1::Tema2::DrawPlayer()
         pos.y = 0.2f;
         modelMatrix = glm::translate(modelMatrix, pos);
         modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1f));
+        modelMatrix = glm::rotate(modelMatrix, angle, glm::vec3(0, 1, 0));
         RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
     }
 
@@ -350,6 +386,7 @@ void m1::Tema2::DrawPlayer()
         pos.y = 0.3f;
         modelMatrix = glm::translate(modelMatrix, pos);
         modelMatrix = glm::scale(modelMatrix, glm::vec3(0.04f));
+        modelMatrix = glm::rotate(modelMatrix, angle, glm::vec3(0, 1, 0));
         RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
     }
 
@@ -358,9 +395,11 @@ void m1::Tema2::DrawPlayer()
         glm::mat4 modelMatrix = glm::mat4(1);
         auto pos = camera->GetTargetPosition();
         pos.y = 0.1f;
-        pos.z -= 0.03f;
+        auto localPos = glm::vec3(-0.03f, 0, 0.0f);
         modelMatrix = glm::translate(modelMatrix, pos);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.04f));
+        modelMatrix = glm::rotate(modelMatrix, angle, glm::vec3(0, 1, 0));
+        modelMatrix = glm::translate(modelMatrix, localPos);
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.04f, 0.09f, 0.04f));
         RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
     }
 
@@ -369,9 +408,11 @@ void m1::Tema2::DrawPlayer()
         glm::mat4 modelMatrix = glm::mat4(1);
         auto pos = camera->GetTargetPosition();
         pos.y = 0.1f;
-        pos.z += 0.03f;
+        auto localPos = glm::vec3(0.03f, 0, 0.0f);
         modelMatrix = glm::translate(modelMatrix, pos);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.04f));
+        modelMatrix = glm::rotate(modelMatrix, angle, glm::vec3(0, 1, 0));
+        modelMatrix = glm::translate(modelMatrix, localPos);
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.04f, 0.09f, 0.04f));
         RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
     }
 
@@ -380,9 +421,11 @@ void m1::Tema2::DrawPlayer()
         glm::mat4 modelMatrix = glm::mat4(1);
         auto pos = camera->GetTargetPosition();
         pos.y = 0.2f;
-        pos.z -= 0.1f;
+        auto localPos = glm::vec3(-0.08f, 0, 0.0f);
         modelMatrix = glm::translate(modelMatrix, pos);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.04f));
+        modelMatrix = glm::rotate(modelMatrix, angle, glm::vec3(0, 1, 0));
+        modelMatrix = glm::translate(modelMatrix, localPos);
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.04f, 0.09f, 0.04f));
         RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
     }
 
@@ -391,9 +434,31 @@ void m1::Tema2::DrawPlayer()
         glm::mat4 modelMatrix = glm::mat4(1);
         auto pos = camera->GetTargetPosition();
         pos.y = 0.2f;
-        pos.z += 0.1f;
+        auto localPos = glm::vec3(0.08f, 0, 0.0f);
         modelMatrix = glm::translate(modelMatrix, pos);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.04f));
+        modelMatrix = glm::rotate(modelMatrix, angle, glm::vec3(0, 1, 0));
+        modelMatrix = glm::translate(modelMatrix, localPos);
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.04f, 0.09f, 0.04f));
         RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
     }
+}
+
+void m1::Tema2::UI()
+{
+    // Front
+    {
+        auto modelMatrix = glm::mat3(1);
+        modelMatrix *= transform2D::Translate(15, 15);
+        modelMatrix *= transform2D::Scale(1.8, 0.2);
+        RenderMesh2D(meshes["square2"], shaders["VertexColor"], modelMatrix);
+    }
+
+    // Background
+    {
+        auto modelMatrix = glm::mat3(1);
+        modelMatrix *= transform2D::Translate(10, 10);
+        modelMatrix *= transform2D::Scale(2, 0.3);
+        RenderMesh2D(meshes["square1"], shaders["VertexColor"], modelMatrix);
+    }
+
 }
