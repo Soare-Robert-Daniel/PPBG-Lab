@@ -60,7 +60,7 @@ void Tema2::Init()
     camera->Set(c, map.GetStartPosition(), glm::vec3(0, 1, 0));
     cout << camera->position.x << camera->position.y << camera->position.z << '\n';
     
-    actor = Actor("box", 2.0f, 5.0f, 0.3f);
+    actor = Actor("box", 2.0f, 10.0f, 0.3f);
     player = new tema2::Player(camera->GetTargetPosition(), 2, "box");
     player->camera = camera;
 
@@ -134,13 +134,15 @@ void Tema2::Update(float deltaTimeSeconds)
     for (int i = 0; i < map.rows; ++i) {
         for (int j = 0; j < map.cols; ++j) {
             auto p = glm::vec2(i, j) - cameraCell;
-            if (map.data[i][j] == Cell::WALL && (glm::abs(p.x) > 0.5f || glm::abs(p.y) > 0.5f)) {
-                glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, glm::vec3(i + 0.5f, 0.5f, j + 0.5f));
-                modelMatrix = glm::rotate(modelMatrix, RADIANS(0.0f), glm::vec3(0, 1, 0));
-                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+            if ( (glm::abs(p.x) > 0.5f || glm::abs(p.y) > 0.5f)) {
+                if (map.data[i][j] == Cell::WALL) {
+                    glm::mat4 modelMatrix = glm::mat4(1);
+                    modelMatrix = glm::translate(modelMatrix, glm::vec3(i + 0.5f, 0.5f, j + 0.5f));
+                    modelMatrix = glm::rotate(modelMatrix, RADIANS(0.0f), glm::vec3(0, 1, 0));
+                    RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+                } 
             }
-            else {
+            if(map.data[i][j] != Cell::WALL) {
                 glm::mat4 modelMatrix = glm::mat4(1);
                 modelMatrix = glm::translate(modelMatrix, glm::vec3(i + 0.5f, -0.5f, j + 0.5f));
                 modelMatrix = glm::rotate(modelMatrix, RADIANS(0.0f), glm::vec3(0, 1, 0));
@@ -201,6 +203,11 @@ void Tema2::Update(float deltaTimeSeconds)
         auto p = e.cell - currentCell;
         if (!e.isDying && glm::abs(p.x) < 0.5f && glm::abs(p.y) < 0.5f) {
             e.move(camera->GetTargetPosition(), deltaTimeSeconds);
+
+
+            if (glm::distance(e.position, camera->GetTargetPosition()) < (e.collRadius + actor.collRadius)) {
+                actor.life -= 1.0f * deltaTimeSeconds;
+            }
         }
 
         // Render enemies
