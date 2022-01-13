@@ -62,7 +62,7 @@ void Tema2::Init()
 
     cout << camera->GetViewMatrix()[0][0] << '\n';
     
-
+    actor = Actor("box", 2.0f, 5.0f);
     player = new tema2::Player(camera->GetTargetPosition(), 2, "box");
     player->camera = camera;
 
@@ -94,6 +94,12 @@ void Tema2::Init()
 
     Mesh* square2 = object2D::CreateSquare("square2", corner, squareSide, glm::vec3(0.5, 0.1, 0.5), true);
     AddMeshToList(square2);
+
+    Mesh* square3 = object2D::CreateSquare("square3", corner, squareSide, glm::vec3(0.1, 0.3, 0.5), true);
+    AddMeshToList(square3);
+
+    Mesh* square4 = object2D::CreateSquare("square4", corner, squareSide, glm::vec3(0.4, 0.8, 0.1), true);
+    AddMeshToList(square4);
 
 
     projectionMatrix = glm::perspective(RADIANS(FOV), window->props.aspectRatio, 0.01f, 200.0f);
@@ -445,11 +451,15 @@ void m1::Tema2::DrawPlayer()
 
 void m1::Tema2::UI()
 {
+    /*
+        HEALTH
+    */
+
     // Front
     {
         auto modelMatrix = glm::mat3(1);
         modelMatrix *= transform2D::Translate(15, 15);
-        modelMatrix *= transform2D::Scale(1.8, 0.2);
+        modelMatrix *= transform2D::Scale(1.8 * actor.life / 10.0f, 0.2);
         RenderMesh2D(meshes["square2"], shaders["VertexColor"], modelMatrix);
     }
 
@@ -459,6 +469,26 @@ void m1::Tema2::UI()
         modelMatrix *= transform2D::Translate(10, 10);
         modelMatrix *= transform2D::Scale(2, 0.3);
         RenderMesh2D(meshes["square1"], shaders["VertexColor"], modelMatrix);
+    }
+
+    /*
+        GAME TIME
+    */
+
+    // Front
+    {
+        auto modelMatrix = glm::mat3(1);
+        modelMatrix *= transform2D::Translate(15, 85);
+        modelMatrix *= transform2D::Scale(1.8 * ( 1.0f - Engine::GetElapsedTime() / MAX_GAMETIME), 0.2);
+        RenderMesh2D(meshes["square3"], shaders["VertexColor"], modelMatrix);
+    }
+
+    // Background
+    {
+        auto modelMatrix = glm::mat3(1);
+        modelMatrix *= transform2D::Translate(10, 80);
+        modelMatrix *= transform2D::Scale(2, 0.3);
+        RenderMesh2D(meshes["square4"], shaders["VertexColor"], modelMatrix);
     }
 
 }

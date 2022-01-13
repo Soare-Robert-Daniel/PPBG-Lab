@@ -12,6 +12,7 @@ constexpr auto MAP_SIZE = 20;
 constexpr auto ENEMIES = 50;
 constexpr auto PROJ_SPEED = 3.0f;
 constexpr auto PROJ_LIFETIME = 1.0f;
+constexpr auto MAX_GAMETIME = 5 * 60;
 
 namespace m1
 {
@@ -120,6 +121,27 @@ namespace m1
 
     };
 
+    struct Actor {
+        float speed;
+        std::string meshID;
+        float life;
+
+        Actor() {
+
+        }
+
+        Actor(std::string meshID, float speed, float life) {
+            this->meshID = meshID;
+            this->speed = speed;
+            this->life = life;
+        }
+
+        void GetDamage() {
+            life -= 1.0f;
+        }
+
+    };
+
     struct Projectile {
         glm::vec3 position;
         glm::vec3 direction;
@@ -177,6 +199,8 @@ namespace m1
          Map map;
          std::vector<Enemy> enemies;
          std::vector<Projectile> projectiles;
+
+         Actor actor;
 
          glm::vec2 currentCell;
          glm::vec2 cameraCell;
