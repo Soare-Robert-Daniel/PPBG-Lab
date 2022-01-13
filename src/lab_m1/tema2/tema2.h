@@ -100,13 +100,20 @@ namespace m1
         float rotation;
         int life;
         float speed;
+        float collRadius;
+        float deathTime;
+        bool isDying;
 
-        Enemy(glm::vec3 p, glm::vec2 c) {
+        Enemy(glm::vec3 p, glm::vec2 c, float coll) {
             position = p;
             cell = c;
             life = 5;
             rotation = 0.0f;
             speed = 0.5f;
+            collRadius = coll;
+            isDying = false;
+            deathTime = 3.0f;
+
         }
 
         void move(glm::vec3 target, float deltaTimeSeconds) {
@@ -125,15 +132,17 @@ namespace m1
         float speed;
         std::string meshID;
         float life;
+        float collRadius;
 
         Actor() {
 
         }
 
-        Actor(std::string meshID, float speed, float life) {
+        Actor(std::string meshID, float speed, float life, float collRadius) {
             this->meshID = meshID;
             this->speed = speed;
             this->life = life;
+            this->collRadius = collRadius;
         }
 
         void GetDamage() {
@@ -147,12 +156,14 @@ namespace m1
         glm::vec3 direction;
         float speed;
         float lifetime;
+        float collRadius;
 
-        Projectile(glm::vec3 pos, glm::vec3 dir, float s, float l) {
+        Projectile(glm::vec3 pos, glm::vec3 dir, float s, float l, float c) {
             position = pos;
             direction = dir;
             speed = s;
             lifetime = l;
+            collRadius = c;
         }
 
         void move(float deltaTimeSeconds) {

@@ -39,7 +39,7 @@ Tema2::Tema2()
         for (int j = 0; j < map.cols; ++j) {
             if (map.data[i][j] == Cell::PATH && enemCounter < ENEMIES && (rand() % 100 < 20)) {
                 map.data[i][j] = Cell::ENEMY;
-                enemies.push_back(Enemy(glm::vec3(i + 0.5f, 0.1f, j + 0.5f), glm::vec2(i, j)));
+                enemies.push_back(Enemy(glm::vec3(i + 0.5f, 0.1f, j + 0.5f), glm::vec2(i, j), 0.1f));
                 enemCounter++;
             }
         }
@@ -59,10 +59,8 @@ void Tema2::Init()
 
     camera->Set(c, map.GetStartPosition(), glm::vec3(0, 1, 0));
     cout << camera->position.x << camera->position.y << camera->position.z << '\n';
-
-    cout << camera->GetViewMatrix()[0][0] << '\n';
     
-    actor = Actor("box", 2.0f, 5.0f);
+    actor = Actor("box", 2.0f, 5.0f, 0.3f);
     player = new tema2::Player(camera->GetTargetPosition(), 2, "box");
     player->camera = camera;
 
@@ -126,17 +124,13 @@ void Tema2::Update(float deltaTimeSeconds)
     cameraCell.x = glm::floor(camera->position.x);
     cameraCell.y = glm::floor(camera->position.z);
 
-    // Move Enemies
-    for (auto &e : enemies) {
-        auto p = e.cell - currentCell;
-        if (glm::abs(p.x) < 0.5f && glm::abs(p.y) < 0.5f) {
-            // cout << "Cell " << currentCell.x << " " << currentCell.y << '\n';
-            e.move(camera->GetTargetPosition(), deltaTimeSeconds);
-        }
-    }
+    
 
     
-    // Render Maze
+   
+    /*
+    +---------------------- RENDER MAZE ----------------------+
+    */
     for (int i = 0; i < map.rows; ++i) {
         for (int j = 0; j < map.cols; ++j) {
             auto p = glm::vec2(i, j) - cameraCell;
@@ -155,24 +149,76 @@ void Tema2::Update(float deltaTimeSeconds)
         }
     }
 
-    for (auto& e : enemies) {
-        glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::translate(modelMatrix, e.position);
-        modelMatrix = glm::rotate(modelMatrix, RADIANS(0.0f), glm::vec3(0, 1, 0));
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1f));
-        RenderMesh(meshes["sphere"], shaders["HitEnemyShader"], modelMatrix);
+    /*
+    +---------------------- PROJECTILES ----------------------+
+    */
+
+    // Delete old projectile
+    for (int i = 0; i < projectiles.size(); ++i) {
+        if (projectiles[i].isOver()) {
+            projectiles.erase(projectiles.begin() + i);
+        }
+    }
+
+    // Move & interact
+    for (auto& p : projectiles) {
+        p.move(deltaTimeSeconds);
+
+        if (!p.isOver()) {
+            for (auto& e : enemies) {
+                cout << glm::distance(e.position, p.position) << '\n';
+                if (glm::distance(e.position, p.position) < (e.collRadius + p.collRadius)) {
+                    p.lifetime = 0;
+                    e.isDying = true;
+                    cout << "HIT" << '\n';
+                }
+           }
+        }
     }
 
     // cout << "Projectile " << projectiles.size() << '\n';
     for (auto& p : projectiles) {
+        
         p.move(deltaTimeSeconds);
 
-        // TODO: delete the projectile when is over
         if (!p.isOver()) {
             glm::mat4 modelMatrix = glm::mat4(1);
             modelMatrix = glm::translate(modelMatrix, p.position);
             modelMatrix = glm::scale(modelMatrix, glm::vec3(0.05f));
             RenderMesh(meshes["sphere"], shaders["VertexNormal"], modelMatrix);
+        }
+    }
+
+    /*
+    +---------------------- ENEMIES  ----------------------+
+    */
+
+    
+    for (int i = 0; i < enemies.size(); ++i) {
+        auto &e = enemies[i];
+
+        // Move Enemies
+        auto p = e.cell - currentCell;
+        if (!e.isDying && glm::abs(p.x) < 0.5f && glm::abs(p.y) < 0.5f) {
+            e.move(camera->GetTargetPosition(), deltaTimeSeconds);
+        }
+
+        // Render enemies
+        glm::mat4 modelMatrix = glm::mat4(1);
+        modelMatrix = glm::translate(modelMatrix, e.position);
+        modelMatrix = glm::rotate(modelMatrix, RADIANS(0.0f), glm::vec3(0, 1, 0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1f));
+
+        if (e.isDying) {
+            e.deathTime -= deltaTimeSeconds;
+            RenderMesh(meshes["sphere"], shaders["HitEnemyShader"], modelMatrix);
+        }
+        else {
+            RenderMesh(meshes["sphere"], shaders["VertexNormal"], modelMatrix);
+        }
+
+        if (e.deathTime < 0) {
+            enemies.erase(enemies.begin() + i);
         }
     }
 
@@ -257,7 +303,7 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
             camera->position.y = 1;
         }
         else {
-            camera->position.y = 3.0f;
+            camera->position.y = 0.3f;
         }
 
     // TODO(student): Change projection parameters. Declare any extra
@@ -297,7 +343,7 @@ void Tema2::OnKeyPress(int key, int mods)
 
     if (key == GLFW_KEY_SPACE && isFirstPerson) {
         // Shoot projectile
-        projectiles.push_back(Projectile(camera->GetTargetPosition(), camera->forward, PROJ_SPEED, PROJ_LIFETIME));
+        projectiles.push_back(Projectile(camera->GetTargetPosition(), camera->forward, PROJ_SPEED, PROJ_LIFETIME, 0.1f));
     }
 }
 
@@ -368,7 +414,7 @@ void m1::Tema2::DrawPlayer()
     auto ref = glm::vec3(0, camera->forward.y, 1);
     auto x = glm::normalize(glm::cross(camera->forward, ref))
         ;
-    auto c = glm::sign(glm::dot(x, glm::vec3(0, 1, 0))) * x.length();
+    auto c = glm::sign(glm::dot(x, glm::vec3(0, 1, 0))) * glm::length(x);
     auto angle = glm::degrees(
         glm::atan2f(c, glm::dot(camera->forward, ref))
     );
