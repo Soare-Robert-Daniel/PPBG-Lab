@@ -31,13 +31,7 @@ namespace m1
 
             // TODO: Replace with Gen Algh
             GenerateMap();
-           /* for (int i = 1; i < rows - 1; ++i) {
-                for (int j = 1; j < cols - 1; ++j) {
-                    if (j % 2 == 0 || i % 2 == 0) {
-                        data[i][j] = Cell::PATH;
-                    }
-                }
-            }*/
+            
         }
 
         void GenerateMap() {
@@ -68,13 +62,13 @@ namespace m1
         std::vector<std::tuple<int, int>> FindNeighbors(int x, int y) {
             std::vector<std::tuple<int, int>> n;
 
-            if (x > 1 && data[x - 2][y] == Cell::WALL) {
+            if (x > 2 && data[x - 2][y] == Cell::WALL) {
                 n.push_back(std::make_tuple(x - 2, y));
             }
             if (x < MAP_SIZE - 2 && data[x + 2][y] == Cell::WALL) {
                 n.push_back(std::make_tuple(x + 2, y));
             }
-            if (y > 1 && data[x][y-2] == Cell::WALL) {
+            if (y > 2 && data[x][y-2] == Cell::WALL) {
                 n.push_back(std::make_tuple(x, y - 2));
             }
             if (y < MAP_SIZE - 2 && data[x][y + 2] == Cell::WALL) {
@@ -84,7 +78,17 @@ namespace m1
             return n;
         }
 
+        glm::vec3 GetStartPosition() {
+            for (int i = 1; i < rows; ++i) {
+                for (int j = 1; j < cols; ++j) {
+                    if (data[rows][cols] == Cell::PATH) {
+                        return glm::vec3(i + 0.5f, 0.1f, j + 0.5f);
+                    }
+                }
+            }
 
+            return glm::vec3(1.5f, 0.1f, 1.5f);
+        }
 
        
     };
@@ -101,7 +105,7 @@ namespace m1
             cell = c;
             life = 5;
             rotation = 0.0f;
-            speed = 1.0f;
+            speed = 0.5f;
         }
 
         void move(glm::vec3 target, float deltaTimeSeconds) {
@@ -163,6 +167,8 @@ namespace m1
         void OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY) override;
         void OnWindowResize(int width, int height) override;
 
+        void DrawPlayer();
+
 
      protected:
          tema2::Player *player;
@@ -172,6 +178,7 @@ namespace m1
          std::vector<Projectile> projectiles;
 
          glm::vec2 currentCell;
+         glm::vec2 cameraCell;
          bool isFirstPerson;
 
 

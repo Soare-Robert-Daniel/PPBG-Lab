@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <stdlib.h>
 
 using namespace std;
 using namespace m1;
@@ -24,7 +25,7 @@ Tema2::Tema2()
     int enemCounter = 0;
     for (int i = 0; i < map.rows; ++i) {
         for (int j = 0; j < map.cols; ++j) {
-            if (map.data[i][j] == Cell::PATH && enemCounter < ENEMIES) {
+            if (map.data[i][j] == Cell::PATH && enemCounter < ENEMIES && (rand() % 100 < 20)) {
                 map.data[i][j] = Cell::ENEMY;
                 enemies.push_back(Enemy(glm::vec3(i + 0.5f, 0.1f, j + 0.5f), glm::vec2(i, j)));
                 enemCounter++;
@@ -42,9 +43,13 @@ Tema2::~Tema2()
 void Tema2::Init()
 {
     renderCameraTarget = false;
+    auto c = map.GetStartPosition() - glm::vec3(0.3f, -0.4f, 0.3f);
 
+    camera->Set(c, map.GetStartPosition(), glm::vec3(0, 1, 0));
+    cout << camera->position.x << camera->position.y << camera->position.z << '\n';
+
+    cout << camera->GetViewMatrix()[0][0] << '\n';
     
-    camera->Set(glm::vec3(1.5, 0.5f, 1.5), glm::vec3(2.5f, 0.1f, 2.5f), glm::vec3(0, 1, 0));
 
     player = new tema2::Player(camera->GetTargetPosition(), 2, "box");
     player->camera = camera;
@@ -93,6 +98,9 @@ void Tema2::Update(float deltaTimeSeconds)
     currentCell.x = glm::floor(camera->GetTargetPosition().x);
     currentCell.y = glm::floor(camera->GetTargetPosition().z);
 
+    cameraCell.x = glm::floor(camera->position.x);
+    cameraCell.y = glm::floor(camera->position.z);
+
     // Move Enemies
     for (auto &e : enemies) {
         auto p = e.cell - currentCell;
@@ -106,9 +114,16 @@ void Tema2::Update(float deltaTimeSeconds)
     // Render Maze
     for (int i = 0; i < map.rows; ++i) {
         for (int j = 0; j < map.cols; ++j) {
-            if (map.data[i][j] == Cell::WALL) {
+            auto p = glm::vec2(i, j) - cameraCell;
+            if (map.data[i][j] == Cell::WALL && (glm::abs(p.x) > 0.5f || glm::abs(p.y) > 0.5f)) {
                 glm::mat4 modelMatrix = glm::mat4(1);
                 modelMatrix = glm::translate(modelMatrix, glm::vec3(i + 0.5f, 0.5f, j + 0.5f));
+                modelMatrix = glm::rotate(modelMatrix, RADIANS(0.0f), glm::vec3(0, 1, 0));
+                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+            }
+            else {
+                glm::mat4 modelMatrix = glm::mat4(1);
+                modelMatrix = glm::translate(modelMatrix, glm::vec3(i + 0.5f, -0.5f, j + 0.5f));
                 modelMatrix = glm::rotate(modelMatrix, RADIANS(0.0f), glm::vec3(0, 1, 0));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
@@ -139,12 +154,7 @@ void Tema2::Update(float deltaTimeSeconds)
 
     if ( renderCameraTarget )
     {
-        glm::mat4 modelMatrix = glm::mat4(1);
-        auto pos = camera->GetTargetPosition();
-        pos.y = 0.1f;
-        modelMatrix = glm::translate(modelMatrix, pos);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1f));
-        RenderMesh(meshes["sphere"], shaders["VertexNormal"], modelMatrix);
+        DrawPlayer();
     }
 }
 
@@ -159,6 +169,8 @@ void Tema2::RenderMesh(Mesh * mesh, Shader * shader, const glm::mat4 & modelMatr
 {
     if (!mesh || !shader || !shader->program)
         return;
+
+    
 
     // Render an object using the specified shader and the specified position
     shader->Use();
@@ -316,4 +328,72 @@ void Tema2::OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY)
 
 void Tema2::OnWindowResize(int width, int height)
 {
+}
+
+void m1::Tema2::DrawPlayer()
+{
+    
+    // Body
+    {
+        glm::mat4 modelMatrix = glm::mat4(1);
+        auto pos = camera->GetTargetPosition();
+        pos.y = 0.2f;
+        modelMatrix = glm::translate(modelMatrix, pos);
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1f));
+        RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+    }
+
+    // Head
+    {
+        glm::mat4 modelMatrix = glm::mat4(1);
+        auto pos = camera->GetTargetPosition();
+        pos.y = 0.3f;
+        modelMatrix = glm::translate(modelMatrix, pos);
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.04f));
+        RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+    }
+
+    // Leg 1
+    {
+        glm::mat4 modelMatrix = glm::mat4(1);
+        auto pos = camera->GetTargetPosition();
+        pos.y = 0.1f;
+        pos.z -= 0.03f;
+        modelMatrix = glm::translate(modelMatrix, pos);
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.04f));
+        RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+    }
+
+    // Leg 2
+    {
+        glm::mat4 modelMatrix = glm::mat4(1);
+        auto pos = camera->GetTargetPosition();
+        pos.y = 0.1f;
+        pos.z += 0.03f;
+        modelMatrix = glm::translate(modelMatrix, pos);
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.04f));
+        RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+    }
+
+    // Hand 1
+    {
+        glm::mat4 modelMatrix = glm::mat4(1);
+        auto pos = camera->GetTargetPosition();
+        pos.y = 0.2f;
+        pos.z -= 0.1f;
+        modelMatrix = glm::translate(modelMatrix, pos);
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.04f));
+        RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+    }
+
+    // Hand 2
+    {
+        glm::mat4 modelMatrix = glm::mat4(1);
+        auto pos = camera->GetTargetPosition();
+        pos.y = 0.2f;
+        pos.z += 0.1f;
+        modelMatrix = glm::translate(modelMatrix, pos);
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.04f));
+        RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+    }
 }
