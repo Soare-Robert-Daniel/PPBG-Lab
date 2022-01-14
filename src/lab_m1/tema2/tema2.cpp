@@ -412,20 +412,10 @@ void Tema2::OnWindowResize(int width, int height)
 
 void m1::Tema2::DrawPlayer()
 {
-   /* function a = vecangle360(v1, v2, n)
-        x = cross(v1, v2);
-    c = sign(dot(x, n)) * norm(x);
-    a = atan2d(c, dot(v1, v2));
-    end*/
 
-    auto ref = glm::vec3(0, camera->forward.y, 1);
-    auto x = glm::normalize(glm::cross(camera->forward, ref))
-        ;
-    auto c = glm::sign(glm::dot(x, glm::vec3(0, 1, 0))) * glm::length(x);
-    auto angle = glm::degrees(
-        glm::atan2f(c, glm::dot(camera->forward, ref))
-    );
-    // angle = 0;
+    auto angle = glm::atan2f(camera->forward.x, camera->forward.z);
+
+    cout << angle << "\n";
     
     // Body
     {
