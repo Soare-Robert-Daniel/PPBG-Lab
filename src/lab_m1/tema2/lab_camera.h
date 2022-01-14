@@ -23,6 +23,14 @@ namespace tema2
             Set(position, center, up);
         }
 
+        Camera(const Camera& c) {
+            position = glm::vec3(c.position);
+            forward = glm::vec3(c.forward);
+            right = glm::vec3(c.right);
+            up = glm::vec3(c.up);
+            distanceToTarget = c.distanceToTarget;
+        }
+
         ~Camera()
         { }
 

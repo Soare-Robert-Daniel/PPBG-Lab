@@ -80,15 +80,15 @@ namespace m1
         }
 
         glm::vec3 GetStartPosition() {
-            for (int i = 1; i < rows; ++i) {
-                for (int j = 1; j < cols; ++j) {
+            for (int i = 2; i < rows; ++i) {
+                for (int j = 2; j < cols; ++j) {
                     if (data[rows][cols] == Cell::PATH) {
-                        return glm::vec3(i + 0.5f, 0.1f, j + 0.5f);
+                        return glm::vec3(i + 0.3f, 0.1f, j + 0.3f);
                     }
                 }
             }
 
-            return glm::vec3(1.5f, 0.1f, 1.5f);
+            return glm::vec3(2.5f, 0.1f, 2.5f);
         }
 
        

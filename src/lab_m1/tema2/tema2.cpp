@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include "lab_m1/lab3/transform2D.h"
 #include "lab_m1/lab3/object2D.h"
-
+#include "lab_m1/tema2/lab_camera.h"
 
 using namespace std;
 using namespace m1;
@@ -275,25 +275,54 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
 {
 
         float cameraSpeed = 2.0f;
+        auto checkPos(*camera);
+
 
         if (window->KeyHold(GLFW_KEY_W)) {
             // TODO(student): Translate the camera forward
-            camera->TranslateForward(deltaTime);
+            checkPos.TranslateForward(deltaTime);
+            auto x = (int)checkPos.GetTargetPosition().x;
+            auto y = (int)checkPos.GetTargetPosition().z;
+
+            cout << (map.data[x][y] != Cell::WALL) << '\n';
+
+            if (map.data[x][y] != Cell::WALL) {
+               camera->TranslateForward(deltaTime);
+            }
+
         }
 
         if (window->KeyHold(GLFW_KEY_A)) {
             // TODO(student): Translate the camera to the left
-            camera->TranslateRight(-deltaTime);
+            checkPos.TranslateRight(-deltaTime);
+            auto x = (int)glm::floor(checkPos.GetTargetPosition().x);
+            auto y = (int)glm::floor(checkPos.GetTargetPosition().z);
+
+            if (map.data[x][y] != Cell::WALL) {
+                camera->TranslateRight(-deltaTime);
+            }
         }
 
         if (window->KeyHold(GLFW_KEY_S)) {
             // TODO(student): Translate the camera backward
-            camera->TranslateForward(-deltaTime);
+            checkPos.TranslateForward(-deltaTime);
+            auto x = (int)glm::floor(checkPos.GetTargetPosition().x);
+            auto y = (int)glm::floor(checkPos.GetTargetPosition().z);
+
+            if (map.data[x][y] != Cell::WALL) {
+                camera->TranslateForward(-deltaTime);
+            }
         }
 
         if (window->KeyHold(GLFW_KEY_D)) {
             // TODO(student): Translate the camera to the right
-            camera->TranslateRight(deltaTime);
+            checkPos.TranslateRight(deltaTime);
+            auto x = (int)glm::floor(checkPos.GetTargetPosition().x);
+            auto y = (int)glm::floor(checkPos.GetTargetPosition().z);
+
+            if (map.data[x][y] != Cell::WALL) {
+                camera->TranslateRight(deltaTime);
+            }
         }
 
         if (window->KeyHold(GLFW_KEY_Q)) {
@@ -414,8 +443,6 @@ void m1::Tema2::DrawPlayer()
 {
 
     auto angle = glm::atan2f(camera->forward.x, camera->forward.z);
-
-    cout << angle << "\n";
     
     // Body
     {
