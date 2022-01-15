@@ -204,6 +204,9 @@ void Tema2::Update(float deltaTimeSeconds)
         if (!e.isDying && glm::abs(p.x) < 0.5f && glm::abs(p.y) < 0.5f) {
             e.move(camera->GetTargetPosition(), deltaTimeSeconds);
 
+            if (glm::distance(e.position, camera->GetTargetPosition()) < 1.0f) {
+                cout << "CLOSE " << glm::distance(e.position, camera->GetTargetPosition()) << '\n';
+            }
 
             if (glm::distance(e.position, camera->GetTargetPosition()) < (e.collRadius + actor.collRadius)) {
                 actor.life -= 1.0f * deltaTimeSeconds;
@@ -284,7 +287,6 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
             auto x = (int)checkPos.GetTargetPosition().x;
             auto y = (int)checkPos.GetTargetPosition().z;
 
-            cout << (map.data[x][y] != Cell::WALL) << '\n';
 
             if (map.data[x][y] != Cell::WALL) {
                camera->TranslateForward(deltaTime);
@@ -537,7 +539,7 @@ void m1::Tema2::UI()
     {
         auto modelMatrix = glm::mat3(1);
         modelMatrix *= transform2D::Translate(10, 10);
-        modelMatrix *= transform2D::Scale(2, 0.3);
+        modelMatrix *= transform2D::Scale(1.9, 0.3);
         RenderMesh2D(meshes["square1"], shaders["VertexColor"], modelMatrix);
     }
 
@@ -557,7 +559,7 @@ void m1::Tema2::UI()
     {
         auto modelMatrix = glm::mat3(1);
         modelMatrix *= transform2D::Translate(10, 80);
-        modelMatrix *= transform2D::Scale(2, 0.3);
+        modelMatrix *= transform2D::Scale(1.9, 0.3);
         RenderMesh2D(meshes["square4"], shaders["VertexColor"], modelMatrix);
     }
 

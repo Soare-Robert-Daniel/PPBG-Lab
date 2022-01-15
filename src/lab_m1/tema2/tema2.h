@@ -80,9 +80,11 @@ namespace m1
         }
 
         glm::vec3 GetStartPosition() {
+            std::cout << "Map " << rows << " " << cols << '\n';
             for (int i = 2; i < rows; ++i) {
                 for (int j = 2; j < cols; ++j) {
-                    if (data[rows][cols] == Cell::PATH) {
+                    if (data[i][j] == Cell::PATH) {
+                        std::cout << "FOUND";
                         return glm::vec3(i + 0.3f, 0.1f, j + 0.3f);
                     }
                 }
