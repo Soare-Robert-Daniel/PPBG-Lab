@@ -17,6 +17,8 @@ using namespace m2;
 
 Tema1::Tema1()
 {
+    board = Board();
+    std::cout << board;
 }
 
 
@@ -34,10 +36,18 @@ void Tema1::Init()
     std::string texturePath = PATH_JOIN(window->props.selfDir, RESOURCE_PATH::TEXTURES, "cube");
     std::string shaderPath = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M2, "tema1", "shaders");
 
-    
+    // Load Cube
     {
         Mesh* mesh = new Mesh("cube");
         mesh->LoadMesh(PATH_JOIN(window->props.selfDir, RESOURCE_PATH::MODELS, "primitives"), "box.obj");
+        mesh->UseMaterials(false);
+        meshes[mesh->GetMeshID()] = mesh;
+    }
+
+    // Load Quad
+    {
+        Mesh* mesh = new Mesh("quad");
+        mesh->LoadMesh(PATH_JOIN(window->props.selfDir, RESOURCE_PATH::MODELS, "primitives"), "quad.obj");
         mesh->UseMaterials(false);
         meshes[mesh->GetMeshID()] = mesh;
     }
@@ -60,13 +70,25 @@ void Tema1::Init()
         shaders[shader->GetName()] = shader;
     }
 
-    cubeMapTextureID = UploadCubeMapTexture(
-        PATH_JOIN(texturePath, "pos_x.png"),
-        PATH_JOIN(texturePath, "pos_y.png"),
-        PATH_JOIN(texturePath, "pos_z.png"),
-        PATH_JOIN(texturePath, "neg_x.png"),
-        PATH_JOIN(texturePath, "neg_y.png"),
-        PATH_JOIN(texturePath, "neg_z.png"));
+    // Cube Map Texture
+    {
+        cubeMapTextureID = UploadCubeMapTexture(
+            PATH_JOIN(texturePath, "pos_x.png"),
+            PATH_JOIN(texturePath, "pos_y.png"),
+            PATH_JOIN(texturePath, "pos_z.png"),
+            PATH_JOIN(texturePath, "neg_x.png"),
+            PATH_JOIN(texturePath, "neg_y.png"),
+            PATH_JOIN(texturePath, "neg_z.png"));
+    }
+
+    // Load Custom Color shader
+    {
+        Shader* shader = new Shader("CustomColor");
+        shader->AddShader(PATH_JOIN(shaderPath, "CustomColor.VS.glsl"), GL_VERTEX_SHADER);
+        shader->AddShader(PATH_JOIN(shaderPath, "CustomColor.FS.glsl"), GL_FRAGMENT_SHADER);
+        shader->CreateAndLink();
+        shaders[shader->GetName()] = shader;
+    }
 }
 
 
@@ -125,7 +147,7 @@ void Tema1::Update(float deltaTimeSeconds)
         glUniform3f(loc_camera, cameraPosition.x, cameraPosition.y, cameraPosition.z);
     }
 
-
+    DrawBoard();
 }
 
 
@@ -247,4 +269,38 @@ void Tema1::OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY)
 void Tema1::OnWindowResize(int width, int height)
 {
     // Treat window resize event
+}
+
+void m2::Tema1::DrawBoard()
+{
+    for (int i = 0; i < BOARD_SIZE; ++i) {
+        for (int j = 0; j < BOARD_SIZE; ++j) {
+            glm::mat4 modelMatrix = glm::mat4(1);
+            modelMatrix = glm::translate(modelMatrix, glm::vec3(i * CELL_SIZE + 0.5f, 0.0f, j * CELL_SIZE + 0.5f));
+            modelMatrix = glm::scale(modelMatrix, glm::vec3(CELL_SIZE * 0.5f));
+            modelMatrix = glm::rotate(modelMatrix, RADIANS(90.0f), glm::vec3(1, 0, 0));
+            if (board.table[i][j].type == CellType::BLACK) {
+                CustomColorRenderMesh(meshes["quad"], shaders["CustomColor"], modelMatrix, glm::vec3(0.1f, 0.1f, 0.1f));
+            }
+            else {
+                CustomColorRenderMesh(meshes["quad"], shaders["CustomColor"], modelMatrix, glm::vec3(0.8f, 0.8f, 0.8f));
+            }
+        }
+    }
+}
+
+void m2::Tema1::CustomColorRenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color)
+{
+    if (!mesh || !shader || !shader->program)
+        return;
+
+    // Render an object using the specified shader and the specified position
+    shader->Use();
+    glUniformMatrix4fv(shader->loc_view_matrix, 1, GL_FALSE, glm::value_ptr(GetSceneCamera()->GetViewMatrix()));
+    glUniformMatrix4fv(shader->loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(GetSceneCamera()->GetProjectionMatrix()));
+    glUniformMatrix4fv(shader->loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+
+    glUniform3fv(glGetUniformLocation(shader->program, "object_color"), 1, glm::value_ptr(color));
+
+    mesh->Render();
 }
