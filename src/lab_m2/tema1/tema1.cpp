@@ -30,7 +30,7 @@ Tema1::~Tema1()
 void Tema1::Init()
 {
     auto camera = GetSceneCamera();
-    camera->SetPositionAndRotation(glm::vec3(0, 3, 8), glm::quat(glm::vec3(-30 * TO_RADIANS, 0, 0)));
+    camera->SetPositionAndRotation(glm::vec3(-3, 4, 4), glm::quat(glm::vec3(-40 * TO_RADIANS, -90 * TO_RADIANS, 0)));
     camera->Update();
 
     std::string texturePath = PATH_JOIN(window->props.selfDir, RESOURCE_PATH::TEXTURES, "cube");
@@ -88,6 +88,34 @@ void Tema1::Init()
         shader->AddShader(PATH_JOIN(shaderPath, "CustomColor.FS.glsl"), GL_FRAGMENT_SHADER);
         shader->CreateAndLink();
         shaders[shader->GetName()] = shader;
+    }
+
+    // Create a shader program for piece surface generation
+    {
+        Shader* shader = new Shader("PieceSurface");
+        shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M2, "tema1", "shaders", "Piece.VS.glsl"), GL_VERTEX_SHADER);
+        shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M2, "tema1", "shaders", "Piece.GS.glsl"), GL_GEOMETRY_SHADER);
+        shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M2, "tema1", "shaders", "Piece.FS.glsl"), GL_FRAGMENT_SHADER);
+        shader->CreateAndLink();
+        shaders[shader->GetName()] = shader;
+    }
+
+    // Create a bogus mesh with 2 points (a line)
+    {
+        vector<VertexFormat> vertices
+        {
+            VertexFormat(p11_piece_points[0], glm::vec3(0, 1, 1)),
+            VertexFormat(p11_piece_points[3], glm::vec3(0, 1, 0))
+        };
+
+        vector<unsigned int> indices =
+        {
+            0, 1
+        };
+
+        meshes["surface"] = new Mesh("generated initial surface points");
+        meshes["surface"]->InitFromData(vertices, indices);
+        meshes["surface"]->SetDrawMode(GL_LINES);
     }
 }
 
@@ -148,6 +176,7 @@ void Tema1::Update(float deltaTimeSeconds)
     }
 
     DrawBoard();
+    DrawPieces();
 }
 
 
@@ -303,4 +332,70 @@ void m2::Tema1::CustomColorRenderMesh(Mesh* mesh, Shader* shader, const glm::mat
     glUniform3fv(glGetUniformLocation(shader->program, "object_color"), 1, glm::value_ptr(color));
 
     mesh->Render();
+}
+
+void m2::Tema1::DrawPieces()
+{
+    for (auto& p : board.pieces) {
+
+        // Part 1
+        {
+            glm::mat4 modelMatrix = glm::mat4(1);
+            modelMatrix = glm::translate(modelMatrix, glm::vec3(p.x + 0.5f, 0.0f, p.y + 0.5f));
+            modelMatrix = glm::scale(modelMatrix, glm::vec3(PIECE_SIZE));
+            auto color = p.type == PieceType::P1 ? glm::vec3(0.0f, 0.0f, 0.8f) : glm::vec3(0.8f, 0.0f, 0.8f);
+            auto points = p.type == PieceType::P1 ? p11_piece_points : p11_piece_points;
+            PieceRenderMesh(meshes["surface"], shaders["PieceSurface"], modelMatrix, color, points);
+        }
+        // Part 2
+        {
+            glm::mat4 modelMatrix = glm::mat4(1);
+            modelMatrix = glm::translate(modelMatrix, glm::vec3(p.x + 0.5f, 1.0f * PIECE_SIZE, p.y + 0.5f));
+            modelMatrix = glm::scale(modelMatrix, glm::vec3(PIECE_SIZE));
+            auto color = p.type == PieceType::P1 ? glm::vec3(0.0f, 0.0f, 0.8f) : glm::vec3(0.8f, 0.0f, 0.8f);
+            auto points = p.type == PieceType::P1 ? p12_piece_points : p12_piece_points;
+            PieceRenderMesh(meshes["surface"], shaders["PieceSurface"], modelMatrix, color, points);
+        }
+        // Part 3
+        {
+            glm::mat4 modelMatrix = glm::mat4(1);
+            modelMatrix = glm::translate(modelMatrix, glm::vec3(p.x + 0.5f, 2.0f * PIECE_SIZE, p.y + 0.5f));
+            modelMatrix = glm::scale(modelMatrix, glm::vec3(PIECE_SIZE));
+            auto color = p.type == PieceType::P1 ? glm::vec3(0.0f, 0.0f, 0.8f) : glm::vec3(0.8f, 0.0f, 0.8f);
+            auto points = p.type == PieceType::P1 ? p13_piece_points : p13_piece_points;
+            PieceRenderMesh(meshes["surface"], shaders["PieceSurface"], modelMatrix, color, points);
+        }
+    }
+}
+
+void m2::Tema1::PieceRenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color, const glm::vec3 points[4])
+{
+    if (!mesh || !shader || !shader->program)
+        return;
+
+
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // Render an object using the specified shader and the specified position
+    shader->Use();
+
+    glUniformMatrix4fv(shader->loc_view_matrix, 1, GL_FALSE, glm::value_ptr(GetSceneCamera()->GetViewMatrix()));
+    glUniformMatrix4fv(shader->loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(GetSceneCamera()->GetProjectionMatrix()));
+    glUniformMatrix4fv(shader->loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+
+    // Surface Parameters
+    glUniform1i(glGetUniformLocation(shader->program, "no_of_instances"), no_of_instances);
+    glUniform1i(glGetUniformLocation(shader->program, "no_of_generated_points"), no_of_generated_points);
+    glUniform1f(glGetUniformLocation(shader->program, "max_translate"), max_translate);
+    glUniform1f(glGetUniformLocation(shader->program, "max_rotate"), max_rotate);
+
+    // Bezier Points
+    glUniform3f(glGetUniformLocation(shader->program, "control_p0"), points[0].x, points[0].y, points[0].z);
+    glUniform3f(glGetUniformLocation(shader->program, "control_p1"), points[1].x, points[1].y, points[1].z);
+    glUniform3f(glGetUniformLocation(shader->program, "control_p2"), points[2].x, points[2].y, points[2].z);
+    glUniform3f(glGetUniformLocation(shader->program, "control_p3"), points[3].x, points[3].y, points[3].z);
+
+    glUniform3fv(glGetUniformLocation(shader->program, "object_color"), 1, glm::value_ptr(color));
+
+    glBindVertexArray(mesh->GetBuffers()->m_VAO);
+    glDrawElementsInstanced(mesh->GetDrawMode(), static_cast<int>(mesh->indices.size()), GL_UNSIGNED_INT, (void*)0, no_of_instances);
 }

@@ -12,6 +12,34 @@ namespace m2
 {
     constexpr auto BOARD_SIZE = 8;
     constexpr auto CELL_SIZE = 1.0f;
+    constexpr auto PIECE_SIZE = 0.4f;
+
+    // Parameters related to piece surface generation
+    constexpr auto no_of_generated_points = 10;           // number of points on a Bezier curve
+    constexpr auto no_of_instances = 15;                   // number of instances (number of curves that contain the surface)
+    constexpr auto max_translate = 0.0f;                  // for the translation surface, it's the distance between the first and the last curve
+    constexpr auto max_rotate = glm::radians(360.0f);      // for the rotation surface, it's the angle between the first and the last curve
+
+    constexpr glm::vec3 p11_piece_points[4] = {
+        glm::vec3(0, 0, 1.0f),
+        glm::vec3(0,  0.3f,  1.0f),
+        glm::vec3(1.0f,  0.7f,  1.0f),
+        glm::vec3(-1.0f,  1.0f,  1.0f)
+    };
+
+    constexpr glm::vec3 p12_piece_points[4] = {
+        glm::vec3(0, 0, 1.0f),
+        glm::vec3(0,  0.8f,  1.0f),
+        glm::vec3(1.0f,  0.7f,  1.0f),
+        glm::vec3(-1.0f,  1.0f,  1.0f)
+    };
+
+    constexpr glm::vec3 p13_piece_points[4] = {
+        glm::vec3(0, 0, 1.0f),
+        glm::vec3(0.4f,  0.3f,  1.0f),
+        glm::vec3(1.0f,  1.0f,  0.0f),
+        glm::vec3(0.0f,  0.0f,  0.0f)
+    };
 
     enum class CellType {
         WHITE,
@@ -133,7 +161,9 @@ namespace m2
         void OnWindowResize(int width, int height) override;
 
         void DrawBoard();
+        void DrawPieces();
         void CustomColorRenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color);
+        void PieceRenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color, const glm::vec3 points[4]);
 
      private:
         int cubeMapTextureID;
