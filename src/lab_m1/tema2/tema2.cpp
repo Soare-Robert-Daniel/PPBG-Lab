@@ -396,8 +396,8 @@ void Tema2::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
 {
     // Add mouse move event
 
-    float sensivityOX = 0.01f;
-    float sensivityOY = 0.01f;
+    float sensivityOX = 0.02f;
+    float sensivityOY = 0.02f;
 
     if (window->GetSpecialKeyState() == 0) {
         camera->RotateThirdPerson_OX(sensivityOX * deltaY * -1);

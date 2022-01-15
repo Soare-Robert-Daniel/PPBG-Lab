@@ -58,6 +58,11 @@ namespace m1
                 }
             }
 
+            for (int i = 0; i < rows; ++i) {
+                if (data[i][cols - 2] == Cell::PATH && (rand() % 100 < 30)) {
+                    data[i][cols-1] = Cell::PATH;
+                }
+            }
         }
 
         std::vector<std::tuple<int, int>> FindNeighbors(int x, int y) {
