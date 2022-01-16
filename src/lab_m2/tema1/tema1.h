@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <tuple>
 
 
 namespace m2
@@ -94,6 +95,8 @@ namespace m2
         Piece(int id, PieceType type, int x, int y): id(id), type(type), x(x), y(y){}
     };
 
+
+
     struct Board {
         Cell table[BOARD_SIZE][BOARD_SIZE];
         std::vector<Piece> pieces;
@@ -139,6 +142,102 @@ namespace m2
                     }
                 }
             }
+        }
+
+        bool HasPiece(int x, int y) {
+            for (auto& p : pieces) {
+                if (p.x == x && p.y == y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        Piece GetPiece(int x, int y) {
+            for (auto& p : pieces) {
+                if (p.x == x && p.y == y) {
+                    return p;
+                }
+            }
+        }
+
+        Piece GetPieceById(int id) {
+            for (auto& p : pieces) {
+                if (p.id == id) {
+                    return p;
+                }
+            }
+
+            return Piece(-1, PieceType::P1, 1, 1);
+        }
+
+        std::vector<Cell> GetFreeMovement(Piece p) {
+            std::vector<Cell> cells;
+            int left = p.y - 1;
+            int right = p.y + 1;
+
+            if (p.type == PieceType::P1) {
+                int forward = p.x + 1;
+                if (0 <= left && !HasPiece(forward, left)) {
+                    cells.push_back(table[forward][left]);
+                }
+                if (right < BOARD_SIZE && !HasPiece(forward, right)) {
+                    cells.push_back(table[forward][right]);
+                }
+            }
+            else {
+                int forward = p.x - 1;
+                if (0 <= left && !HasPiece(forward, left)) {
+                    cells.push_back(table[forward][left]);
+                }
+                if (right < BOARD_SIZE && !HasPiece(forward, right)) {
+                    cells.push_back(table[forward][right]);
+                }
+            }
+
+            return cells;
+        }
+
+        std::vector<std::tuple<Cell, Piece>> GetTakeOverMovement(Piece p) {
+            std::vector<std::tuple<Cell, Piece>> cells;
+
+            int left = p.y - 2;
+            int right = p.y + 2;
+
+            // TODO: verify out of bound for forward
+            if (p.type == PieceType::P1) {
+                int forward = p.x + 2;
+                if (0 <= left && !HasPiece(forward, left) && HasPiece( p.x + 1, p.y - 1) ) {
+                    auto t = GetPiece(p.x + 1, p.y - 1);
+                    if (t.type == PieceType::P2) {
+                        cells.push_back( std::make_tuple( table[forward][left], t));
+                    }
+                }
+                if (right < BOARD_SIZE && !HasPiece(forward, right)) {
+                    auto t = GetPiece(p.x + 1, p.y + 1);
+                    if (t.type == PieceType::P2) {
+                        cells.push_back(std::make_tuple(table[forward][right], t));
+                    }
+                }
+            }
+            else {
+                int forward = p.x - 2;
+                if (0 <= left && !HasPiece(forward, left) && HasPiece(p.x - 1, p.y - 1)) {
+                    auto t = GetPiece(p.x - 1, p.y - 1);
+                    if (t.type == PieceType::P1) {
+                        cells.push_back(std::make_tuple(table[forward][left], GetPiece(p.x - 1, p.y - 1)));
+                    }
+                    
+                }
+                if (right < BOARD_SIZE && !HasPiece(forward, right)) {
+                    auto t = GetPiece(p.x - 1, p.y + 1);
+                    if (t.type == PieceType::P1) {
+                        cells.push_back(std::make_tuple(table[forward][right], GetPiece(p.x - 1, p.y + 1)));
+                    }
+                }
+            }
+
+            return cells;
         }
 
         friend std::ostream& operator<<(std::ostream& os, const Board& b) {
@@ -197,5 +296,6 @@ namespace m2
         bool useIdAsAlpha;
         int selectedPiece;
         int pieceId;
+        std::vector<int> highlight;
     };
 }   // namespace m2

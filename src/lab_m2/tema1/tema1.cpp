@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
 #include "stb/stb_image.h"
 
@@ -310,14 +311,31 @@ void Tema1::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
 void Tema1::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
 {
     // Add mouse button press event
-    std::cout << button << ' ';
     if (button == GLFW_MOUSE_BUTTON_2) {
-
+        highlight.clear();
+        
         if (pieceId != selectedPiece) {
             selectedPiece = pieceId;
         }
         else {
             selectedPiece = -1;
+        }
+        if (selectedPiece != -1) {
+            auto p = board.GetPieceById(selectedPiece);
+            if (p.id != -1) {
+                auto free = board.GetFreeMovement(p);
+                auto takeover = board.GetTakeOverMovement(p);
+
+                for (auto& c : free) {
+                    highlight.push_back(c.id);
+                }
+
+                for (auto& c : takeover) {
+                    highlight.push_back((std::get<0>(c)).id);
+                }
+
+            }
+
         }
     }
 }
@@ -348,11 +366,17 @@ void m2::Tema1::DrawBoard()
             modelMatrix = glm::translate(modelMatrix, glm::vec3(i * CELL_SIZE + 0.5f, 0.0f, j * CELL_SIZE + 0.5f));
             modelMatrix = glm::scale(modelMatrix, glm::vec3(CELL_SIZE * 0.5f));
             modelMatrix = glm::rotate(modelMatrix, RADIANS(90.0f), glm::vec3(1, 0, 0));
+            bool isSelected = false;
+            for (auto& h : highlight) {
+                if (h == board.table[i][j].id) {
+                    isSelected = true;
+                }
+            }
             if (board.table[i][j].type == CellType::BLACK) {
-                CustomColorRenderMesh(meshes["quad"], shaders["CustomColor"], modelMatrix, glm::vec3(0.1f, 0.1f, 0.1f), board.table[i][j].id);
+                CustomColorRenderMesh(meshes["quad"], shaders["CustomColor"], modelMatrix, isSelected ? glm::vec3(0.0f, 1.0f, 0.0f) :  glm::vec3(0.1f, 0.1f, 0.1f), board.table[i][j].id);
             }
             else {
-                CustomColorRenderMesh(meshes["quad"], shaders["CustomColor"], modelMatrix, glm::vec3(0.8f, 0.8f, 0.8f), board.table[i][j].id);
+                CustomColorRenderMesh(meshes["quad"], shaders["CustomColor"], modelMatrix, isSelected ? glm::vec3(0.0f, 1.0f, 0.0f) : glm::vec3(0.8f, 0.8f, 0.8f), board.table[i][j].id);
             }
         }
     }
