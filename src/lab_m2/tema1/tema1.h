@@ -2,6 +2,7 @@
 
 #include "components/simple_scene.h"
 #include "components/transform.h"
+#include "core/gpu/frame_buffer.h"
 
 #include <string>
 #include <vector>
@@ -35,10 +36,31 @@ namespace m2
     };
 
     constexpr glm::vec3 p13_piece_points[4] = {
+        glm::vec3(0, 0.71f, 1.0f),
+        glm::vec3(0.5f,  0.8f,  1.0f),
+        glm::vec3(0.9f,  0.7f,  0.0f),
+        glm::vec3(1.0f,  0.0f,  0.0f)
+    };
+
+    constexpr glm::vec3 p21_piece_points[4] = {
         glm::vec3(0, 0, 1.0f),
-        glm::vec3(0.4f,  0.3f,  1.0f),
-        glm::vec3(1.0f,  1.0f,  0.0f),
-        glm::vec3(0.0f,  0.0f,  0.0f)
+        glm::vec3(0,  0.3f,  1.0f),
+        glm::vec3(1.0f,  0.7f,  1.0f),
+        glm::vec3(-1.0f,  1.0f,  1.0f)
+    };
+
+    constexpr glm::vec3 p22_piece_points[4] = {
+        glm::vec3(0, 0, 1.0f),
+        glm::vec3(0,  0.8f,  1.0f),
+        glm::vec3(1.0f,  0.7f,  1.0f),
+        glm::vec3(-1.0f,  1.0f,  1.0f)
+    };
+
+    constexpr glm::vec3 p23_piece_points[4] = {
+        glm::vec3(0, 0.71f, 1.0f),
+        glm::vec3(0.5f,  0.8f,  1.0f),
+        glm::vec3(0.9f,  0.7f,  0.0f),
+        glm::vec3(1.0f,  0.0f,  0.0f)
     };
 
     enum class CellType {
@@ -160,14 +182,20 @@ namespace m2
         void OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY) override;
         void OnWindowResize(int width, int height) override;
 
+        void Draw();
         void DrawBoard();
         void DrawPieces();
-        void CustomColorRenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color);
-        void PieceRenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color, const glm::vec3 points[4]);
+        void CustomColorRenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color, const int id);
+        void PieceRenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color, const glm::vec3 points[4], const int id);
 
      private:
         int cubeMapTextureID;
 
         Board board;
+        FrameBuffer* selectionBuffer;
+        bool showSelectionBuffer;
+        bool useIdAsAlpha;
+        int selectedPiece;
+        int pieceId;
     };
 }   // namespace m2

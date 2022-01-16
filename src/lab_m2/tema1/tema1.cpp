@@ -18,6 +18,8 @@ using namespace m2;
 Tema1::Tema1()
 {
     board = Board();
+    showSelectionBuffer = false;
+    selectedPiece = -1;
     std::cout << board;
 }
 
@@ -30,8 +32,16 @@ Tema1::~Tema1()
 void Tema1::Init()
 {
     auto camera = GetSceneCamera();
-    camera->SetPositionAndRotation(glm::vec3(-3, 4, 4), glm::quat(glm::vec3(-40 * TO_RADIANS, -90 * TO_RADIANS, 0)));
+    camera->SetPositionAndRotation(glm::vec3(-0.5, 8, 4), glm::quat(glm::vec3(-60 * TO_RADIANS, -90 * TO_RADIANS, 0)));
     camera->Update();
+
+    // Create the selection buffer
+    {
+        auto resolution = window->GetResolution();
+        selectionBuffer = new FrameBuffer();
+        selectionBuffer->Generate(resolution.x, resolution.y, 1);
+        FrameBuffer::BindDefault();
+    }
 
     std::string texturePath = PATH_JOIN(window->props.selfDir, RESOURCE_PATH::TEXTURES, "cube");
     std::string shaderPath = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M2, "tema1", "shaders");
@@ -134,49 +144,69 @@ void Tema1::Update(float deltaTimeSeconds)
     // Clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Draw the cubemap
     {
-        Shader *shader = shaders["ShaderNormal"];
-        shader->Use();
+        selectionBuffer->Bind();
+        useIdAsAlpha = true;
+        Draw();
+        useIdAsAlpha = false;
 
-        glm::mat4 modelMatrix = glm::scale(glm::mat4(1), glm::vec3(30));
+        // x si y reprezinta pozitia mouse-ului pe ecran, in pixeli.
+        unsigned char data[4];
+        auto p = window->GetCursorPosition(); auto x = p.x; auto y = p.y;
+        y = window->props.resolution.y - y;
 
-        glUniformMatrix4fv(shader->loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-        glUniformMatrix4fv(shader->loc_view_matrix, 1, GL_FALSE, glm::value_ptr(camera->GetViewMatrix()));
-        glUniformMatrix4fv(shader->loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(camera->GetProjectionMatrix()));
+        glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        pieceId = data[3];
+        // std::cout << pieceId << " ";
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTextureID);
-        int loc_texture = shader->GetUniformLocation("texture_cubemap");
-        glUniform1i(loc_texture, 0);
-
-        meshes["cube"]->Render();
     }
 
-    // Draw the reflection on the mesh
+    if (!showSelectionBuffer)
     {
-        Shader *shader = shaders["CubeMap"];
-        shader->Use();
+        selectionBuffer->BindDefault();
+        // Draw the cubemap
+        {
+            Shader *shader = shaders["ShaderNormal"];
+            shader->Use();
 
-        glm::mat4 modelMatrix = glm::scale(glm::mat4(1), glm::vec3(0.1f));
+            glm::mat4 modelMatrix = glm::scale(glm::mat4(1), glm::vec3(30));
 
-        glUniformMatrix4fv(shader->loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-        glUniformMatrix4fv(shader->loc_view_matrix, 1, GL_FALSE, glm::value_ptr(camera->GetViewMatrix()));
-        glUniformMatrix4fv(shader->loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(camera->GetProjectionMatrix()));
+            glUniformMatrix4fv(shader->loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+            glUniformMatrix4fv(shader->loc_view_matrix, 1, GL_FALSE, glm::value_ptr(camera->GetViewMatrix()));
+            glUniformMatrix4fv(shader->loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(camera->GetProjectionMatrix()));
 
-        auto cameraPosition = camera->m_transform->GetWorldPosition();
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTextureID);
+            int loc_texture = shader->GetUniformLocation("texture_cubemap");
+            glUniform1i(loc_texture, 0);
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTextureID);
-        int loc_texture = shader->GetUniformLocation("texture_cubemap");
-        glUniform1i(loc_texture, 0);
+            meshes["cube"]->Render();
+        }
 
-        int loc_camera = shader->GetUniformLocation("camera_position");
-        glUniform3f(loc_camera, cameraPosition.x, cameraPosition.y, cameraPosition.z);
+        // Draw the reflection on the mesh
+        {
+            Shader *shader = shaders["CubeMap"];
+            shader->Use();
+
+            glm::mat4 modelMatrix = glm::scale(glm::mat4(1), glm::vec3(0.1f));
+
+            glUniformMatrix4fv(shader->loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+            glUniformMatrix4fv(shader->loc_view_matrix, 1, GL_FALSE, glm::value_ptr(camera->GetViewMatrix()));
+            glUniformMatrix4fv(shader->loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(camera->GetProjectionMatrix()));
+
+            auto cameraPosition = camera->m_transform->GetWorldPosition();
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTextureID);
+            int loc_texture = shader->GetUniformLocation("texture_cubemap");
+            glUniform1i(loc_texture, 0);
+
+            int loc_camera = shader->GetUniformLocation("camera_position");
+            glUniform3f(loc_camera, cameraPosition.x, cameraPosition.y, cameraPosition.z);
+        }
+ 
+        Draw();
     }
-
-    DrawBoard();
-    DrawPieces();
 }
 
 
@@ -280,6 +310,16 @@ void Tema1::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
 void Tema1::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
 {
     // Add mouse button press event
+    std::cout << button << ' ';
+    if (button == GLFW_MOUSE_BUTTON_2) {
+
+        if (pieceId != selectedPiece) {
+            selectedPiece = pieceId;
+        }
+        else {
+            selectedPiece = -1;
+        }
+    }
 }
 
 
@@ -309,16 +349,16 @@ void m2::Tema1::DrawBoard()
             modelMatrix = glm::scale(modelMatrix, glm::vec3(CELL_SIZE * 0.5f));
             modelMatrix = glm::rotate(modelMatrix, RADIANS(90.0f), glm::vec3(1, 0, 0));
             if (board.table[i][j].type == CellType::BLACK) {
-                CustomColorRenderMesh(meshes["quad"], shaders["CustomColor"], modelMatrix, glm::vec3(0.1f, 0.1f, 0.1f));
+                CustomColorRenderMesh(meshes["quad"], shaders["CustomColor"], modelMatrix, glm::vec3(0.1f, 0.1f, 0.1f), board.table[i][j].id);
             }
             else {
-                CustomColorRenderMesh(meshes["quad"], shaders["CustomColor"], modelMatrix, glm::vec3(0.8f, 0.8f, 0.8f));
+                CustomColorRenderMesh(meshes["quad"], shaders["CustomColor"], modelMatrix, glm::vec3(0.8f, 0.8f, 0.8f), board.table[i][j].id);
             }
         }
     }
 }
 
-void m2::Tema1::CustomColorRenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color)
+void m2::Tema1::CustomColorRenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color, const int id)
 {
     if (!mesh || !shader || !shader->program)
         return;
@@ -328,6 +368,7 @@ void m2::Tema1::CustomColorRenderMesh(Mesh* mesh, Shader* shader, const glm::mat
     glUniformMatrix4fv(shader->loc_view_matrix, 1, GL_FALSE, glm::value_ptr(GetSceneCamera()->GetViewMatrix()));
     glUniformMatrix4fv(shader->loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(GetSceneCamera()->GetProjectionMatrix()));
     glUniformMatrix4fv(shader->loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+    glUniform1i(glGetUniformLocation(shader->program, "object_id"), useIdAsAlpha ? id : 255);
 
     glUniform3fv(glGetUniformLocation(shader->program, "object_color"), 1, glm::value_ptr(color));
 
@@ -342,33 +383,42 @@ void m2::Tema1::DrawPieces()
         {
             glm::mat4 modelMatrix = glm::mat4(1);
             modelMatrix = glm::translate(modelMatrix, glm::vec3(p.x + 0.5f, 0.0f, p.y + 0.5f));
-            modelMatrix = glm::scale(modelMatrix, glm::vec3(PIECE_SIZE));
+            modelMatrix = glm::scale(modelMatrix, glm::vec3(PIECE_SIZE, 1.0f, PIECE_SIZE));
             auto color = p.type == PieceType::P1 ? glm::vec3(0.0f, 0.0f, 0.8f) : glm::vec3(0.8f, 0.0f, 0.8f);
-            auto points = p.type == PieceType::P1 ? p11_piece_points : p11_piece_points;
-            PieceRenderMesh(meshes["surface"], shaders["PieceSurface"], modelMatrix, color, points);
+            color = p.id == selectedPiece ? glm::vec3(0.0f, 1.0f, 0.0f) : color;
+            auto points = p.type == PieceType::P1 ? p11_piece_points : p21_piece_points;
+            PieceRenderMesh(meshes["surface"], shaders["PieceSurface"], modelMatrix, color, points, p.id);
         }
         // Part 2
         {
             glm::mat4 modelMatrix = glm::mat4(1);
             modelMatrix = glm::translate(modelMatrix, glm::vec3(p.x + 0.5f, 1.0f * PIECE_SIZE, p.y + 0.5f));
-            modelMatrix = glm::scale(modelMatrix, glm::vec3(PIECE_SIZE));
+            modelMatrix = glm::scale(modelMatrix, glm::vec3(PIECE_SIZE, 1.0f, PIECE_SIZE));
             auto color = p.type == PieceType::P1 ? glm::vec3(0.0f, 0.0f, 0.8f) : glm::vec3(0.8f, 0.0f, 0.8f);
-            auto points = p.type == PieceType::P1 ? p12_piece_points : p12_piece_points;
-            PieceRenderMesh(meshes["surface"], shaders["PieceSurface"], modelMatrix, color, points);
+            color = p.id == selectedPiece ? glm::vec3(0.0f, 1.0f, 0.0f) : color;
+            auto points = p.type == PieceType::P1 ? p12_piece_points : p22_piece_points;
+            PieceRenderMesh(meshes["surface"], shaders["PieceSurface"], modelMatrix, color, points, p.id);
         }
         // Part 3
         {
             glm::mat4 modelMatrix = glm::mat4(1);
             modelMatrix = glm::translate(modelMatrix, glm::vec3(p.x + 0.5f, 2.0f * PIECE_SIZE, p.y + 0.5f));
-            modelMatrix = glm::scale(modelMatrix, glm::vec3(PIECE_SIZE));
+            modelMatrix = glm::scale(modelMatrix, glm::vec3(PIECE_SIZE, 1.0f, PIECE_SIZE));
             auto color = p.type == PieceType::P1 ? glm::vec3(0.0f, 0.0f, 0.8f) : glm::vec3(0.8f, 0.0f, 0.8f);
-            auto points = p.type == PieceType::P1 ? p13_piece_points : p13_piece_points;
-            PieceRenderMesh(meshes["surface"], shaders["PieceSurface"], modelMatrix, color, points);
+            color = p.id == selectedPiece ? glm::vec3(0.0f, 1.0f, 0.0f) : color;
+            auto points = p.type == PieceType::P1 ? p13_piece_points : p23_piece_points;
+            PieceRenderMesh(meshes["surface"], shaders["PieceSurface"], modelMatrix, color, points, p.id);
         }
     }
 }
 
-void m2::Tema1::PieceRenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color, const glm::vec3 points[4])
+void m2::Tema1::Draw()
+{
+    DrawBoard();
+    DrawPieces();
+}
+
+void m2::Tema1::PieceRenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color, const glm::vec3 points[4], const int id)
 {
     if (!mesh || !shader || !shader->program)
         return;
@@ -395,6 +445,7 @@ void m2::Tema1::PieceRenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& mod
     glUniform3f(glGetUniformLocation(shader->program, "control_p3"), points[3].x, points[3].y, points[3].z);
 
     glUniform3fv(glGetUniformLocation(shader->program, "object_color"), 1, glm::value_ptr(color));
+    glUniform1i(glGetUniformLocation(shader->program, "object_id"), useIdAsAlpha ? id : 255);
 
     glBindVertexArray(mesh->GetBuffers()->m_VAO);
     glDrawElementsInstanced(mesh->GetDrawMode(), static_cast<int>(mesh->indices.size()), GL_UNSIGNED_INT, (void*)0, no_of_instances);
