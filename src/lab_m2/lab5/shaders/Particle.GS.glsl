@@ -40,5 +40,15 @@ void main()
     //  0---------1
     //
     // Triangles: (0, 1, 3), (1, 2, 3)
+    texture_coord = vec2(0, 0);
+    EmitPoint(vec2(-ds, -ds));
 
+    texture_coord = vec2(0, 1);
+    EmitPoint(vec2(-ds, ds));
+
+    texture_coord = vec2(1, 1);
+    EmitPoint(vec2(ds, ds));
+
+    texture_coord = vec2(0, 1);
+    EmitPoint(vec2(ds, -ds));
 }
