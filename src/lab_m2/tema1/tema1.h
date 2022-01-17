@@ -15,6 +15,7 @@ namespace m2
 	constexpr auto BOARD_SIZE = 8;
 	constexpr auto CELL_SIZE = 1.0f;
 	constexpr auto PIECE_SIZE = 0.4f;
+	constexpr auto PIECE_SPEED = 2.0f;
 
 	// Parameters related to piece surface generation
 	constexpr auto no_of_generated_points = 10;           // number of points on a Bezier curve
@@ -92,7 +93,26 @@ namespace m2
 		int x;
 		int y;
 
-		Piece(int id, PieceType type, int x, int y) : id(id), type(type), x(x), y(y) {}
+		float cX;
+		float cY;
+		float tX;
+		float tY;
+
+		Piece(int id, PieceType type, int x, int y) : id(id), type(type), x(x), y(y) {
+			cX = tX = (float)x;
+			cY = tY = (float)y;
+		}
+
+		void move(float deltaTime) {
+			if ( glm::abs( tX - cX ) > 0.01f) {
+				auto sign = tX > cX ? 1.0f : -1.0f;
+				cX += sign * glm::min(deltaTime * PIECE_SPEED, glm::abs(tX - cX));;
+			}
+			if (glm::abs(tY - cY) > 0.01f) {
+				auto sign = tY > cY ? 1.0f : -1.0f;
+				cY += sign * glm::min( deltaTime * PIECE_SPEED, glm::abs(tY - cY));
+			}
+		}
 	};
 
 
@@ -205,6 +225,8 @@ namespace m2
 							if (p.id == source.id) {
 								p.x = i;
 								p.y = j;
+								p.tX = (float)i;
+								p.tY = (float)j;
 								break;
 							}
 						}

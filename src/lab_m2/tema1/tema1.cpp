@@ -145,6 +145,10 @@ void Tema1::Update(float deltaTimeSeconds)
 	// Clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	for (auto& p : board.pieces) {
+		p.move(deltaTimeSeconds);
+	}
+
 	{
 		selectionBuffer->Bind();
 		useIdAsAlpha = true;
@@ -427,7 +431,7 @@ void m2::Tema1::DrawPieces()
 		// Part 1
 		{
 			glm::mat4 modelMatrix = glm::mat4(1);
-			modelMatrix = glm::translate(modelMatrix, glm::vec3(p.x + 0.5f, 0.0f, p.y + 0.5f));
+			modelMatrix = glm::translate(modelMatrix, glm::vec3(p.cX + 0.5f, 0.0f, p.cY + 0.5f));
 			modelMatrix = glm::scale(modelMatrix, glm::vec3(PIECE_SIZE, 1.0f, PIECE_SIZE));
 			auto color = p.type == PieceType::P1 ? glm::vec3(0.0f, 0.0f, 0.8f) : glm::vec3(0.8f, 0.0f, 0.8f);
 			color = p.id == selectedPiece ? glm::vec3(0.0f, 1.0f, 0.0f) : color;
@@ -437,7 +441,7 @@ void m2::Tema1::DrawPieces()
 		// Part 2
 		{
 			glm::mat4 modelMatrix = glm::mat4(1);
-			modelMatrix = glm::translate(modelMatrix, glm::vec3(p.x + 0.5f, 1.0f * PIECE_SIZE, p.y + 0.5f));
+			modelMatrix = glm::translate(modelMatrix, glm::vec3(p.cX + 0.5f, 1.0f * PIECE_SIZE, p.cY + 0.5f));
 			modelMatrix = glm::scale(modelMatrix, glm::vec3(PIECE_SIZE, 1.0f, PIECE_SIZE));
 			auto color = p.type == PieceType::P1 ? glm::vec3(0.0f, 0.0f, 0.8f) : glm::vec3(0.8f, 0.0f, 0.8f);
 			color = p.id == selectedPiece ? glm::vec3(0.0f, 1.0f, 0.0f) : color;
@@ -447,7 +451,7 @@ void m2::Tema1::DrawPieces()
 		// Part 3
 		{
 			glm::mat4 modelMatrix = glm::mat4(1);
-			modelMatrix = glm::translate(modelMatrix, glm::vec3(p.x + 0.5f, 2.0f * PIECE_SIZE, p.y + 0.5f));
+			modelMatrix = glm::translate(modelMatrix, glm::vec3(p.cX + 0.5f, 2.0f * PIECE_SIZE, p.cY + 0.5f));
 			modelMatrix = glm::scale(modelMatrix, glm::vec3(PIECE_SIZE, 1.0f, PIECE_SIZE));
 			auto color = p.type == PieceType::P1 ? glm::vec3(0.0f, 0.0f, 0.8f) : glm::vec3(0.8f, 0.0f, 0.8f);
 			color = p.id == selectedPiece ? glm::vec3(0.0f, 1.0f, 0.0f) : color;
