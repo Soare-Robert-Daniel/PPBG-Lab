@@ -153,6 +153,15 @@ namespace m2
 			return false;
 		}
 
+		bool PieceExists(int id) {
+			for (auto& p : pieces) {
+				if (p.id == id) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		Piece GetPiece(int x, int y) {
 			for (auto& p : pieces) {
 				if (p.x == x && p.y == y) {
@@ -169,6 +178,40 @@ namespace m2
 			}
 
 			return Piece(-1, PieceType::P1, 1, 1);
+		}
+
+		void RemovePiece(int id) {
+			if (id < -1) {
+				return;
+			}
+			for (int i = 0; i < pieces.size(); ++i) {
+				if (pieces[i].id == id) {
+					pieces.erase(pieces.begin() + i);
+					break;
+				}
+			}
+		}
+
+
+		void MakeTakeOver(Piece& source, int destId, int targetId ) {
+
+			RemovePiece(targetId);
+
+			for (int i = 0; i < BOARD_SIZE; ++i) {
+				for (int j = 0; j < BOARD_SIZE; ++j) {
+					if (table[i][j].id == destId) {
+						
+						for (auto& p : pieces) {
+							if (p.id == source.id) {
+								p.x = i;
+								p.y = j;
+								break;
+							}
+						}
+						return;
+					}
+				}
+			}
 		}
 
 		std::vector<Cell> GetFreeMovement(Piece p) {
@@ -297,5 +340,7 @@ namespace m2
 		int selectedPiece;
 		int pieceId;
 		std::vector<int> highlight;
+		std::vector<Cell> free;
+		std::vector<std::tuple<Cell, Piece>> takeover;
 	};
 }   // namespace m2

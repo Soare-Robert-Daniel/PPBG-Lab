@@ -312,7 +312,21 @@ void Tema1::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
 {
 	// Add mouse button press event
 	if (button == GLFW_MOUSE_BUTTON_2) {
-		highlight.clear();
+
+		for (auto& c : highlight) {
+			if (c == pieceId && board.PieceExists(selectedPiece)) {
+				for (auto& f : free) {
+					if (c == f.id) {
+						board.MakeTakeOver(board.GetPieceById(selectedPiece), c, -1);
+					}
+				}
+				for (auto& t : takeover) {
+					if (c == (std::get<0>(t).id)) {
+						board.MakeTakeOver(board.GetPieceById(selectedPiece), c, (std::get<1>(t).id));
+					}
+				}
+			}
+		}
 
 		if (pieceId != selectedPiece) {
 			selectedPiece = pieceId;
@@ -320,11 +334,18 @@ void Tema1::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
 		else {
 			selectedPiece = -1;
 		}
+
+		
+
+		highlight.clear();
 		if (selectedPiece != -1) {
 			auto p = board.GetPieceById(selectedPiece);
 			if (p.id != -1) {
-				auto free = board.GetFreeMovement(p);
-				auto takeover = board.GetTakeOverMovement(p);
+				free.clear();
+				takeover.clear();
+
+				free = board.GetFreeMovement(p);
+				takeover = board.GetTakeOverMovement(p);
 
 				for (auto& c : free) {
 					highlight.push_back(c.id);
