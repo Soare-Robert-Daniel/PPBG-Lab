@@ -128,6 +128,44 @@ void Tema1::Init()
 		meshes["surface"]->InitFromData(vertices, indices);
 		meshes["surface"]->SetDrawMode(GL_LINES);
 	}
+
+	// Particle Effects
+	{
+		// Load textures
+		{
+			TextureManager::LoadTexture(PATH_JOIN(window->props.selfDir, RESOURCE_PATH::TEXTURES), "particle2.png");
+		}
+
+		LoadShader("Particle");
+
+	//	unsigned int nrParticles = 5000;
+
+	//	particleEffect = new ParticleEffect<Particle>();
+	//	particleEffect->Generate(nrParticles, true);
+
+	//	auto particleSSBO = particleEffect->GetParticleBuffer();
+	//	Particle* data = const_cast<Particle*>(particleSSBO->GetBuffer());
+
+	//	int cubeSize = 20;
+	//	int hSize = cubeSize / 2;
+
+	//	for (unsigned int i = 0; i < nrParticles; i++)
+	//	{
+	//		glm::vec4 pos(1);
+	//		pos.x = (rand() % cubeSize - hSize) / 10.0f;
+	//		pos.y = (rand() % cubeSize - hSize) / 10.0f;
+	//		pos.z = (rand() % cubeSize - hSize) / 10.0f;
+
+	//		glm::vec4 speed(0);
+	//		speed.x = (rand() % 20 - 10) / 10.0f;
+	//		speed.z = (rand() % 20 - 10) / 10.0f;
+	//		speed.y = rand() % 2 + 2.0f;
+
+	//		data[i].SetInitial(pos, speed);
+	//	}
+
+	//	particleSSBO->SetBufferData(data);
+	}
 }
 
 
@@ -208,6 +246,35 @@ void Tema1::Update(float deltaTimeSeconds)
 
 			int loc_camera = shader->GetUniformLocation("camera_position");
 			glUniform3f(loc_camera, cameraPosition.x, cameraPosition.y, cameraPosition.z);
+		}
+
+		// Particle Effects
+		for(auto& e:particleModels)
+		{
+			if (!e.hasFinished()) {
+				e.update(deltaTimeSeconds);
+
+				glLineWidth(3);
+
+				glEnable(GL_BLEND);
+				glDisable(GL_DEPTH_TEST);
+				glBlendFunc(GL_ONE, GL_ONE);
+				glBlendEquation(GL_FUNC_ADD);
+
+				{
+					auto shader = shaders["Particle"];
+					if (shader->GetProgramID())
+					{
+						shader->Use();
+						TextureManager::GetTexture("particle2.png")->BindToTextureUnit(GL_TEXTURE0);
+						e.particleEffect->Render(GetSceneCamera(), shader);
+					}
+				}
+
+				glEnable(GL_DEPTH_TEST);
+				glDisable(GL_BLEND);
+			}
+			
 		}
 
 		Draw();
@@ -327,6 +394,7 @@ void Tema1::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
 				for (auto& t : takeover) {
 					if (c == (std::get<0>(t).id)) {
 						board.MakeTakeOver(board.GetPieceById(selectedPiece), c, (std::get<1>(t).id));
+						particleModels.push_back(ParticleModel(std::get<1>(t).cX + 0.5f, 1.5f, std::get<1>(t).cY + 0.5f));
 					}
 				}
 			}
@@ -465,6 +533,25 @@ void m2::Tema1::Draw()
 {
 	DrawBoard();
 	DrawPieces();
+}
+
+void m2::Tema1::LoadShader(const std::string& name, bool hasGeomtery)
+{
+	std::string shaderPath = PATH_JOIN(window->props.selfDir, SOURCE_PATH::M2, "tema1", "shaders");
+
+	// Create a shader program for particle system
+	{
+		Shader* shader = new Shader(name);
+		shader->AddShader(PATH_JOIN(shaderPath, name + ".VS.glsl"), GL_VERTEX_SHADER);
+		shader->AddShader(PATH_JOIN(shaderPath, name + ".FS.glsl"), GL_FRAGMENT_SHADER);
+		if (hasGeomtery)
+		{
+			shader->AddShader(PATH_JOIN(shaderPath, name + ".GS.glsl"), GL_GEOMETRY_SHADER);
+		}
+
+		shader->CreateAndLink();
+		shaders[shader->GetName()] = shader;
+	}
 }
 
 void m2::Tema1::PieceRenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color, const glm::vec3 points[4], const int id)

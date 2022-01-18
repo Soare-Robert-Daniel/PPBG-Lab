@@ -3,6 +3,7 @@
 #include "components/simple_scene.h"
 #include "components/transform.h"
 #include "core/gpu/frame_buffer.h"
+#include "core/gpu/particle_effect.h"
 
 #include <string>
 #include <vector>
@@ -322,6 +323,71 @@ namespace m2
 		}
 	};
 
+	struct Particle
+	{
+		glm::vec4 position;
+		glm::vec4 speed;
+		glm::vec4 initialPos;
+		glm::vec4 initialSpeed;
+
+		Particle() {}
+
+		Particle(const glm::vec4& pos, const glm::vec4& speed)
+		{
+			SetInitial(pos, speed);
+		}
+
+		void SetInitial(const glm::vec4& pos, const glm::vec4& speed)
+		{
+			position = pos;
+			initialPos = pos;
+
+			this->speed = speed;
+			initialSpeed = speed;
+		}
+	};
+
+	struct ParticleModel {
+		ParticleEffect<Particle>* particleEffect;
+		float lifetime;
+
+		ParticleModel(float x, float y, float z) {
+			lifetime = 2.0f;
+			unsigned int nrParticles = 15000;
+
+			particleEffect = new ParticleEffect<Particle>();
+			particleEffect->Generate(nrParticles, true);
+
+			auto particleSSBO = particleEffect->GetParticleBuffer();
+			Particle* data = const_cast<Particle*>(particleSSBO->GetBuffer());
+
+			for (unsigned int i = 0; i < nrParticles; i++)
+			{
+				glm::vec4 pos(1);
+				pos.x = x;
+				pos.y = y;
+				pos.z = z;
+
+				glm::vec4 speed(0);
+				speed.x = (rand() % 50) / 50.0f;
+				speed.z = (rand() % 50) / 50.0f;
+				speed.y = rand() % 2 + 1.0f;
+
+				data[i].SetInitial(pos, speed);
+			}
+
+			particleSSBO->SetBufferData(data);
+		}
+
+		void update(float deltaTime) {
+			lifetime -= deltaTime;
+		}
+
+		bool hasFinished() {
+			return lifetime < 0.0f;
+		}
+	};
+
 	class Tema1 : public gfxc::SimpleScene
 	{
 	public:
@@ -351,12 +417,14 @@ namespace m2
 		void DrawPieces();
 		void CustomColorRenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color, const int id);
 		void PieceRenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color, const glm::vec3 points[4], const int id);
+		void LoadShader(const std::string& name, bool hasGeomtery = true);
 
 	private:
 		int cubeMapTextureID;
 
 		Board board;
 		FrameBuffer* selectionBuffer;
+		GLenum polygonMode;
 		bool showSelectionBuffer;
 		bool useIdAsAlpha;
 		int selectedPiece;
@@ -364,5 +432,6 @@ namespace m2
 		std::vector<int> highlight;
 		std::vector<Cell> free;
 		std::vector<std::tuple<Cell, Piece>> takeover;
+		std::vector<ParticleModel> particleModels;
 	};
 }   // namespace m2
