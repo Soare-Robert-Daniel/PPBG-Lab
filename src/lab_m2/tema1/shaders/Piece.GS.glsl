@@ -79,9 +79,9 @@ void main()
         for (int t = 0; t < no_of_generated_points; ++t) {
             vec3 p = bezier(t * delta_t);
 
-            vec3 p1 = translateX( rotateY(p, instance[0] * rot_step), instance[0] * dist);
-            vec3 p2 = translateX( rotateY(p, (instance[0] + 1 ) * rot_step), (instance[0] + 1) * dist);
-            vec3 p3 = translateX( rotateY(p, (instance[0] + 2 ) * rot_step), (instance[0] + 2) * dist);
+            vec3 p1 = ( Model * vec4(translateX( rotateY(p, instance[0] * rot_step), instance[0] * dist), 1)).xyz;
+            vec3 p2 = ( Model * vec4(translateX( rotateY(p, (instance[0] + 1 ) * rot_step), (instance[0] + 1) * dist), 1)).xyz;
+            vec3 p3 = ( Model * vec4(translateX( rotateY(p, (instance[0] + 2 ) * rot_step), (instance[0] + 2) * dist), 1)).xyz;
             vec3 v1 = normalize(p2 - p1);
             vec3 v2 = normalize(p3 - p1);
 

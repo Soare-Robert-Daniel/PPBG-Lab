@@ -22,5 +22,5 @@ vec3 myReflect()
 
 void main()
 {
-    out_color = vec4(mix(object_color, myReflect(), 0.25f), object_id / 255.0f);
+    out_color = vec4(mix(object_color, myReflect(), 0.5f), object_id / 255.0f);
 }
