@@ -15,10 +15,14 @@ uniform vec3 object_color;
 // Output
 out int instance;
 out vec3 piece_color;
+layout(location = 1) out vec3 position;
+layout(location = 2) out vec3 normal;
 
 void main()
 {
     piece_color = object_color;
     instance = gl_InstanceID;
+    position = (Model * vec4(v_position, 1)).xyz;
+
     gl_Position = Model * vec4(v_position, 1);
 }

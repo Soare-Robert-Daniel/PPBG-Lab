@@ -4,8 +4,10 @@
 layout(location = 0) in vec3 text_coord;
 
 // Uniform properties
+uniform sampler2D texture_1;
 uniform samplerCube texture_cubemap;
 
+uniform vec3 camera_position;
 // Output
 layout(location = 0) out vec4 out_color;
 

@@ -4,7 +4,7 @@
 // TODO(student): First, generate a curve (via line strip),
 // then a rotation/translation surface (via triangle strip)
 layout(lines) in;
-layout(triangle_strip, max_vertices = 256) out;
+layout(triangle_strip, max_vertices = 30) out;
 
 // Uniform properties
 uniform mat4 View;
@@ -12,13 +12,13 @@ uniform mat4 Projection;
 uniform mat4 Model;
 uniform vec3 control_p0, control_p1, control_p2, control_p3;
 uniform int no_of_instances;
-// TODO(student): Declare any other uniforms here
 uniform int no_of_generated_points;
 uniform float max_translate;
 uniform float max_rotate;
 // Input
 in int instance[2];
-
+layout(location = 1) out vec3 world_position;
+layout(location = 2) out vec3 world_normal;
 
 vec3 rotateY(vec3 point, float u)
 {
@@ -72,16 +72,29 @@ void main()
 
     if (instance[0] < no_of_instances)
     {
-        // TODO(student): Rather than emitting vertices for the control
-        // points, you must emit vertices that approximate the curve itself.
         float delta_t = 1.0f / no_of_generated_points;
         float dist = max_translate / no_of_instances;
         float rot_step = max_rotate / no_of_instances;
 
         for (int t = 0; t < no_of_generated_points; ++t) {
             vec3 p = bezier(t * delta_t);
+
+            vec3 p1 = translateX( rotateY(p, instance[0] * rot_step), instance[0] * dist);
+            vec3 p2 = translateX( rotateY(p, (instance[0] + 1 ) * rot_step), (instance[0] + 1) * dist);
+            vec3 p3 = translateX( rotateY(p, (instance[0] + 2 ) * rot_step), (instance[0] + 2) * dist);
+            vec3 v1 = normalize(p2 - p1);
+            vec3 v2 = normalize(p3 - p1);
+
+            world_normal = cross(v2, v1);
+            world_position = (Model * vec4(p1, 1)).xyz;
             gl_Position = Projection * View * Model * vec4(translateX( rotateY(p, instance[0] * rot_step), instance[0] * dist), 1);
             EmitVertex();
+
+            // vec3 p4 = translateX(rotateY(p, (instance[0] + 3 ) * rot_step), (instance[0] + 3) * dist);
+            vec3 v3 = normalize(p1 - p2);
+            vec3 v4 = normalize(p3 - p2);
+            world_normal = cross(v4, v3);
+            world_position = (Model * vec4(p2, 1)).xyz;
             gl_Position = Projection * View * Model * vec4(translateX(rotateY(p, (instance[0] + 1 ) * rot_step), (instance[0] + 1) * dist), 1);
             EmitVertex();
         }

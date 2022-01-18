@@ -489,6 +489,19 @@ void m2::Tema1::CustomColorRenderMesh(Mesh* mesh, Shader* shader, const glm::mat
 
 	glUniform3fv(glGetUniformLocation(shader->program, "object_color"), 1, glm::value_ptr(color));
 
+	// Reflexion
+	{
+		auto cameraPosition = GetSceneCamera()->m_transform->GetWorldPosition();
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTextureID);
+		int loc_texture = shader->GetUniformLocation("texture_cubemap");
+		glUniform1i(loc_texture, 0);
+
+		int loc_camera = shader->GetUniformLocation("camera_position");
+		glUniform3f(loc_camera, cameraPosition.x, cameraPosition.y, cameraPosition.z);
+	}
+
 	mesh->Render();
 }
 
@@ -582,6 +595,20 @@ void m2::Tema1::PieceRenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& mod
 
 	glUniform3fv(glGetUniformLocation(shader->program, "object_color"), 1, glm::value_ptr(color));
 	glUniform1i(glGetUniformLocation(shader->program, "object_id"), useIdAsAlpha ? id : 255);
+
+	// Reflexion
+	{
+		auto cameraPosition = GetSceneCamera()->m_transform->GetWorldPosition();
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapTextureID);
+		int loc_texture = shader->GetUniformLocation("texture_cubemap");
+		glUniform1i(loc_texture, 0);
+
+		int loc_camera = shader->GetUniformLocation("camera_position");
+		glUniform3f(loc_camera, cameraPosition.x, cameraPosition.y, cameraPosition.z);
+	}
+	
 
 	glBindVertexArray(mesh->GetBuffers()->m_VAO);
 	glDrawElementsInstanced(mesh->GetDrawMode(), static_cast<int>(mesh->indices.size()), GL_UNSIGNED_INT, (void*)0, no_of_instances);
